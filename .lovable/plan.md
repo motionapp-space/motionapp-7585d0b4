@@ -1,375 +1,182 @@
 
-# Piano UI: Gestione Prenotazioni — 10/10 Edition
 
-## Sintesi delle 5 Micro-Migliorie
+# Piano: PendingRequestCard Compatta — Layout Orizzontale
 
-| # | Area | Fix |
-|---|------|-----|
-| 1 | Data/ora | Rimuovere `capitalize` (output date-fns già formattato) |
-| 2 | Header card | `bg-muted/30` invece di `bg-primary/5` (meno "alert-like") |
-| 3 | Rifiuta | Aggiungere conferma leggera con Popover |
-| 4 | Modale | Mostrare slot disponibili dopo selezione giorno (già implementato!) |
-| 5 | CTA disabilitata | Feedback di selezione parziale |
+## Obiettivo
+
+Ridurre l'altezza della card del ~35-45% passando da layout **verticale stacked** a **orizzontale 2-righe** con azioni sulla destra.
+
+## Confronto Visivo
+
+### PRIMA (Attuale — Stacked)
+```text
+┌─────────────────────────────────────┐
+│ 🔵 Da approvare                     │  ← Header separato
+├─────────────────────────────────────┤
+│ lun 12 gen · 10:00–11:00            │  ← Riga 1
+│ 🔴 Matthew Count                     │  ← Riga 2
+│ Lezione singola · 60 min            │  ← Riga 3
+│ "Note opzionali..."                 │  ← Riga 4 (opzionale)
+├─────────────────────────────────────┤
+│ [Approva] [Controproponi]           │  ← Azioni separate
+│       Rifiuta richiesta             │
+└─────────────────────────────────────┘
+```
+
+### DOPO (Compatto — Orizzontale)
+```text
+┌──────────────────────────────────────────────────────────────┐
+│ ← INFO (flex-1)                        → AZIONI (shrink-0)   │
+│                                                              │
+│ 🔵 Da approvare  lun 12 gen · 10:00–11:00                    │
+│ 🔴 Matthew Count · Lezione singola · 60 min    [✓] [↔]       │
+│ "Note opzionali..."                             Rifiuta      │
+└──────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## 1. PendingRequestCard.tsx — Refactor Completo
+## Struttura JSX Target
 
-### File: `src/features/bookings/components/PendingRequestCard.tsx`
-
-### Modifiche Strutturali
-
-#### A) Header — `bg-muted/30` (Fix #2)
-
-```typescript
-// PRIMA (attuale)
-<div className="bg-blue-50 dark:bg-blue-950/30 px-4 py-2 border-b border-blue-100 dark:border-blue-900/50">
-
-// DOPO
-<div className="bg-muted/30 px-4 py-2.5 border-b">
-  <Badge className="bg-primary hover:bg-primary text-primary-foreground font-medium">
-    Da approvare
-  </Badge>
-  {/* RIMUOVERE "Azione richiesta" */}
-</div>
+```text
+Card
+└── CardContent (p-4)
+    └── flex items-start gap-4
+        ├── LEFT (flex-1 min-w-0 space-y-1.5)
+        │   ├── Riga 1: Badge + Data/Ora (flex items-center gap-2)
+        │   ├── Riga 2: ClientDot + Nome + " · " + Tipo + Durata
+        │   └── Riga 3: Note (opzionale, compatte)
+        │
+        └── RIGHT (shrink-0 flex flex-col items-end gap-2)
+            ├── Row: [Approva sm] [Controproponi sm outline]
+            └── Rifiuta (text link + Popover conferma)
 ```
 
-#### B) Data/Ora Primaria — Senza `capitalize` (Fix #1)
+---
 
-```typescript
-// Formato compatto senza capitalize
-const formattedDateCompact = format(startDate, "EEE d MMM", { locale: it });
-const formattedTimeRange = `${format(startDate, "HH:mm")} – ${format(endDate, "HH:mm")}`;
+## Modifiche al File
 
-// Rendering (SENZA capitalize)
-<p className="text-lg font-semibold text-foreground">
-  {formattedDateCompact} · {formattedTimeRange}
-</p>
-```
+**File**: `src/features/bookings/components/PendingRequestCard.tsx`
 
-#### C) Gerarchia Informazioni — Invertita
+### Cambiamenti Chiave
 
-```typescript
-<div className="p-5 space-y-3">
-  {/* 1. PRIMARIO: Data e ora */}
-  <p className="text-lg font-semibold text-foreground">
-    {formattedDateCompact} · {formattedTimeRange}
-  </p>
+| Area | Prima | Dopo |
+|------|-------|------|
+| **Layout** | Stacked verticale | Orizzontale con `flex items-start gap-4` |
+| **Header** | Separato con `border-b` | Badge inline con data/ora |
+| **Info** | 4 elementi separati | 2 righe compatte |
+| **Azioni** | Full-width sotto | Colonna destra, size `sm` |
+| **Note** | Box `bg-muted/50 p-2.5` | Inline `italic` senza box |
+| **Altezza** | ~180-200px | ~80-100px |
 
-  {/* 2. SECONDARIO: Nome cliente */}
-  <div className="flex items-center gap-2">
-    <ClientColorDot clientId={request.coach_client_id} />
-    <span className="text-base font-medium text-foreground">
-      {request.client_name}
-    </span>
-  </div>
+### Codice Completo
 
-  {/* 3. TERZIARIO: Tipo sessione */}
-  <p className="text-sm text-muted-foreground">
-    Lezione singola · {durationMinutes} min
-  </p>
-
-  {/* 4. Note opzionali */}
-  {request.notes && (
-    <div className="text-sm text-muted-foreground bg-muted/50 p-2.5 rounded-md">
-      "{request.notes}"
-    </div>
-  )}
-</div>
-```
-
-#### D) Azioni con Conferma per Rifiuta (Fix #3)
-
-Nuovo import necessario:
-```typescript
-import { ArrowLeftRight } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-```
-
-Nuovo state:
-```typescript
-const [confirmDeclineOpen, setConfirmDeclineOpen] = useState(false);
-```
-
-Layout azioni:
-```typescript
-<div className="border-t bg-muted/30 p-4 space-y-3">
-  {/* Bottoni principali affiancati */}
-  <div className="flex gap-3">
-    <Button 
-      onClick={() => onApprove(request.id)} 
-      disabled={isLoading} 
-      className="flex-1"
-    >
-      <Check className="h-4 w-4 mr-1.5" />
-      Approva
-    </Button>
-    <Button 
-      variant="outline" 
-      onClick={() => onCounterPropose(request)} 
-      disabled={isLoading}
-      className="flex-1"
-    >
-      <ArrowLeftRight className="h-4 w-4 mr-1.5" />
-      Controproponi
-    </Button>
-  </div>
-
-  {/* Link distruttivo CON conferma */}
-  <Popover open={confirmDeclineOpen} onOpenChange={setConfirmDeclineOpen}>
-    <PopoverTrigger asChild>
-      <button
-        disabled={isLoading}
-        className="w-full text-center text-sm text-destructive hover:underline disabled:opacity-50"
-      >
-        Rifiuta richiesta
-      </button>
-    </PopoverTrigger>
-    <PopoverContent className="w-64 p-4" align="center">
-      <p className="text-sm text-foreground mb-3">
-        Vuoi rifiutare la richiesta?
-      </p>
-      <div className="flex gap-2">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="flex-1"
-          onClick={() => setConfirmDeclineOpen(false)}
-        >
-          Annulla
-        </Button>
-        <Button 
-          variant="destructive" 
-          size="sm" 
-          className="flex-1"
-          onClick={() => {
-            onDecline(request.id);
-            setConfirmDeclineOpen(false);
-          }}
-        >
-          Rifiuta
-        </Button>
+```tsx
+<Card className="overflow-hidden">
+  <CardContent className="p-4">
+    <div className="flex items-start gap-4">
+      
+      {/* LEFT: Info (2 righe) */}
+      <div className="flex-1 min-w-0 space-y-1.5">
+        
+        {/* Riga 1: Badge + Data/Ora */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <Badge className="bg-primary hover:bg-primary text-primary-foreground text-xs font-medium">
+            Da approvare
+          </Badge>
+          <span className="text-sm font-semibold text-foreground">
+            {formattedDateCompact} · {formattedTimeRange}
+          </span>
+        </div>
+        
+        {/* Riga 2: Cliente + Tipo sessione */}
+        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <ClientColorDot clientId={request.coach_client_id} />
+          <span className="font-medium text-foreground truncate">
+            {request.client_name}
+          </span>
+          <span>·</span>
+          <span className="truncate">
+            Lezione singola · {durationMinutes} min
+          </span>
+        </div>
+        
+        {/* Note opzionali - compatte */}
+        {request.notes && (
+          <p className="text-xs text-muted-foreground italic truncate">
+            "{request.notes}"
+          </p>
+        )}
       </div>
-    </PopoverContent>
-  </Popover>
-</div>
-```
-
----
-
-## 2. CounterProposeDialog.tsx — Micro-Migliorie
-
-### File: `src/features/bookings/components/CounterProposeDialog.tsx`
-
-### A) Header con Subtitle Guida
-
-```typescript
-// PRIMA (righe 172-184)
-<DialogHeader className="space-y-1">
-  <DialogTitle className="text-base font-medium">
-    Proponi nuovo orario
-  </DialogTitle>
-  ...
-</DialogHeader>
-
-// DOPO
-<DialogHeader className="space-y-2">
-  <DialogTitle className="text-lg font-semibold">
-    Proponi un nuovo orario
-  </DialogTitle>
-  <p className="text-sm text-muted-foreground">
-    Il cliente potrà accettare o rifiutare la tua proposta.
-  </p>
-  {originalStart && originalEnd && (
-    <div className="pt-1">
-      <Badge variant="outline" className="font-normal text-sm py-1 px-3">
-        Richiesta: {format(originalStart, "EEE d MMM", { locale: it })} · {format(originalStart, "HH:mm")}–{format(originalEnd, "HH:mm")}
-      </Badge>
+      
+      {/* RIGHT: Azioni compatte */}
+      <div className="shrink-0 flex flex-col items-end gap-2">
+        <div className="flex gap-2">
+          <Button size="sm" onClick={() => onApprove(request.id)} disabled={isLoading}>
+            <Check className="h-3.5 w-3.5 mr-1" />
+            Approva
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => onCounterPropose(request)} disabled={isLoading}>
+            <ArrowLeftRight className="h-3.5 w-3.5 mr-1" />
+            Controproponi
+          </Button>
+        </div>
+        
+        {/* Rifiuta con Popover conferma (MANTENUTO) */}
+        <Popover open={confirmDeclineOpen} onOpenChange={setConfirmDeclineOpen}>
+          <PopoverTrigger asChild>
+            <button disabled={isLoading} className="text-xs text-destructive hover:underline disabled:opacity-50">
+              Rifiuta
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-56 p-3" align="end">
+            <p className="text-sm text-foreground mb-2">Vuoi rifiutare?</p>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" className="flex-1" onClick={() => setConfirmDeclineOpen(false)}>
+                Annulla
+              </Button>
+              <Button variant="destructive" size="sm" className="flex-1" onClick={() => { onDecline(request.id); setConfirmDeclineOpen(false); }}>
+                Rifiuta
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+      
     </div>
-  )}
-</DialogHeader>
-```
-
-### B) Sezione Suggeriti con Sottotitolo Guida
-
-```typescript
-// PRIMA (righe 190-194)
-<div className="flex items-center gap-2 text-sm font-medium text-primary mb-2">
-  <Sparkles className="h-4 w-4" />
-  Orari consigliati
-</div>
-
-// DOPO
-<div className="space-y-1 mb-3">
-  <div className="flex items-center gap-2 text-sm font-medium text-primary">
-    <Sparkles className="h-4 w-4" />
-    Orari suggeriti
-  </div>
-  <p className="text-xs text-muted-foreground">
-    Suggeriti in base alla tua disponibilità. Puoi anche scegliere un giorno e orario diverso.
-  </p>
-</div>
-```
-
-### C) Rimuovere `capitalize` dagli slot suggeriti (Fix #1)
-
-```typescript
-// PRIMA (riga 211)
-<span className="text-xs text-muted-foreground capitalize">
-
-// DOPO
-<span className="text-xs text-muted-foreground">
-```
-
-### D) Titolo sezione calendario
-
-```typescript
-// PRIMA (righe 228-231)
-<div className="flex items-center gap-2 text-sm font-medium mb-2">
-  <Calendar className="h-4 w-4 text-muted-foreground" />
-  Scegli un giorno alternativo
-</div>
-
-// DOPO
-<p className="text-sm font-medium text-foreground mb-3">
-  Scegli un giorno alternativo
-</p>
-```
-
-### E) Sezione Time Slots — Titolo senza `capitalize` (Fix #1)
-
-```typescript
-// PRIMA (riga 261)
-<span className="capitalize">
-  {format(selectedDate, "EEEE d MMMM", { locale: it })}
-</span>
-
-// DOPO
-<span>
-  Orari disponibili
-</span>
-```
-
-### F) Placeholder quando nessun giorno selezionato (Fix #4)
-
-Aggiungere prima della sezione time slots (prima di riga 257):
-
-```typescript
-{/* Placeholder quando nessun giorno selezionato */}
-{!selectedDate && (
-  <div className="px-4 py-6 text-center">
-    <p className="text-sm text-muted-foreground">
-      Seleziona un giorno per vedere gli orari disponibili
-    </p>
-  </div>
-)}
-
-{/* Time Slots Section - solo se data selezionata */}
-{selectedDate && (
-  // ... contenuto esistente
-)}
-```
-
-### G) Footer CTA con Feedback Selezione Parziale (Fix #5)
-
-```typescript
-// PRIMA (righe 367-370)
-<Button disabled className="w-full" size="lg">
-  Seleziona un orario
-</Button>
-
-// DOPO
-<div className="space-y-2">
-  {/* Riepilogo selezione parziale */}
-  {selectedDate && !selectedSlot && (
-    <p className="text-center text-sm text-muted-foreground">
-      Giorno selezionato: {format(selectedDate, "d MMM", { locale: it })} · scegli un orario
-    </p>
-  )}
-  
-  <Button disabled className="w-full" size="lg">
-    Invia controproposta
-  </Button>
-  
-  {!selectedDate && (
-    <p className="text-center text-sm text-muted-foreground">
-      Seleziona un giorno e un orario per continuare
-    </p>
-  )}
-</div>
-```
-
-### H) Footer CTA quando completo — Label uniformata
-
-```typescript
-// PRIMA (righe 352-365)
-<div className="space-y-2">
-  <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-    <Check className="h-4 w-4 text-green-600" />
-    Proposta pronta per l'invio
-  </div>
-  <Button ...>
-    Proponi · {formatSlotDate(selectedSlot)} · {formatSlotTime(selectedSlot)}
-  </Button>
-</div>
-
-// DOPO
-<div className="space-y-2">
-  <p className="text-center text-sm text-muted-foreground">
-    Nuova proposta: <span className="font-medium text-foreground">
-      {formatSlotDate(selectedSlot)} · {formatSlotTime(selectedSlot)}
-    </span>
-  </p>
-  <Button 
-    onClick={handleSubmit} 
-    disabled={isSubmitting}
-    className="w-full"
-    size="lg"
-  >
-    Invia controproposta
-  </Button>
-</div>
+  </CardContent>
+</Card>
 ```
 
 ---
 
-## 3. BookingManagement.tsx — Micro-copy Update
+## Micro-Tuning Inclusi
 
-### File: `src/pages/BookingManagement.tsx`
-
-```typescript
-// PRIMA (riga ~145)
-<CardDescription>
-  Approva, rifiuta o controproponi un'altra data
-</CardDescription>
-
-// DOPO
-<CardDescription>
-  Approva, rifiuta o proponi un altro orario ai tuoi clienti.
-</CardDescription>
-```
+| Fix | Implementazione |
+|-----|-----------------|
+| **Icone più piccole** | `h-3.5 w-3.5` invece di `h-4 w-4` |
+| **Button size** | `size="sm"` per ridurre altezza |
+| **Badge compatto** | `text-xs` |
+| **Note senza box** | `italic truncate` invece di `bg-muted/50 p-2.5` |
+| **Popover mantenuto** | Conferma "Rifiuta" con align `end` |
+| **Truncate** | Su nome cliente e note per evitare overflow |
 
 ---
 
-## Riepilogo Modifiche
+## Responsive Behavior
 
-| File | Modifiche |
-|------|-----------|
-| `PendingRequestCard.tsx` | Header `bg-muted/30`, gerarchia invertita, no `capitalize`, azioni visibili, Popover conferma rifiuto |
-| `CounterProposeDialog.tsx` | Subtitle header, sottotitolo suggeriti, no `capitalize`, placeholder pre-selezione, feedback parziale CTA |
-| `BookingManagement.tsx` | Micro-copy sezione |
+Il layout è progettato per funzionare su desktop. Su mobile molto stretto, le azioni potrebbero "wrappare" sotto le info, ma il `min-w-0` e `truncate` prevengono overflow.
 
 ---
 
-## Risultato UX Finale
+## Risultato Atteso
 
-Il coach vedrà:
-1. Card pulita con data/ora immediatamente leggibile (senza strane capitalizzazioni)
-2. Header neutro `bg-muted/30` che non urla "alert"
-3. Tre azioni chiare: Approva (primary) > Controproponi (outline) > Rifiuta (link con conferma)
-4. Modale guidata con placeholder e feedback di progresso
-5. Zero rischio di rifiutare per errore grazie al Popover di conferma
+| Metrica | Prima | Dopo |
+|---------|-------|------|
+| **Altezza card** | ~180px | ~85px |
+| **Riduzione** | — | **~53%** |
+| **Scan visivo** | 3-4 secondi | <2 secondi |
+| **Densità lista** | 3-4 card visibili | 6-8 card visibili |
+
+Il coach può processare più richieste senza scroll eccessivo.
+
