@@ -36,100 +36,109 @@ export function PendingRequestCard({
   const endDate = new Date(request.requested_end_at);
   const durationMinutes = Math.round((endDate.getTime() - startDate.getTime()) / 60000);
 
-  // Formato compatto senza capitalize
   const formattedDateCompact = format(startDate, "EEE d MMM", { locale: it });
   const formattedTimeRange = `${format(startDate, "HH:mm")} – ${format(endDate, "HH:mm")}`;
 
   const isLoading = isApproving || isDeclining;
 
   return (
-    <Card className="overflow-hidden">
-      <CardContent className="p-4">
-        {/* 3 colonne: Stato | Info | Azioni */}
-        <div className="grid grid-cols-[auto_1fr_auto] gap-4 items-start">
-
-          {/* COL 1: Stato (fissa, piccola) */}
-          <div className="pt-0.5">
-            <Badge className="bg-primary hover:bg-primary text-primary-foreground text-xs font-medium whitespace-nowrap">
+    <Card>
+      <CardContent className="p-4 space-y-4">
+        {/* BLOCCO INFO */}
+        <div className="space-y-1">
+          {/* Riga 1: Badge + Data · Orario (sempre su una riga) */}
+          <div className="flex items-center gap-2">
+            <Badge className="bg-primary/10 text-primary text-xs font-medium px-2 py-1 whitespace-nowrap pointer-events-none">
               Da approvare
             </Badge>
+            <span className="text-sm text-muted-foreground whitespace-nowrap">
+              {formattedDateCompact} ·
+            </span>
+            <span className="text-sm font-semibold text-foreground whitespace-nowrap">
+              {formattedTimeRange}
+            </span>
           </div>
 
-          {/* COL 2: Info (elastica) */}
-          <div className="flex flex-col space-y-1.5 min-w-0">
-            {/* Riga 1: Data/ora mai troncata */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-sm font-semibold text-foreground whitespace-nowrap">
-                {formattedDateCompact} · {formattedTimeRange}
-              </span>
-            </div>
-
-            {/* Riga 2: Nome troncabile + meta troncabile */}
-            <div className="flex items-center gap-1.5 text-sm text-muted-foreground min-w-0">
-              <div className="flex items-center gap-1.5 min-w-0 truncate">
-                <ClientColorDot clientId={request.coach_client_id} />
-                <span className="font-medium text-foreground truncate">
-                  {request.client_name}
-                </span>
-              </div>
-              <span className="shrink-0">·</span>
-              <span className="truncate">
-                Lezione singola · {durationMinutes} min
-              </span>
-            </div>
-
-            {/* Note opzionali */}
-            {request.notes && (
-              <p className="text-xs text-muted-foreground italic line-clamp-1">
-                "{request.notes}"
-              </p>
-            )}
+          {/* Riga 2: Cliente */}
+          <div className="flex items-center gap-1.5 min-w-0">
+            <ClientColorDot clientId={request.coach_client_id} />
+            <span className="text-sm font-medium text-foreground truncate">
+              {request.client_name}
+            </span>
           </div>
 
-          {/* COL 3: Azioni (fissa, allineata) */}
-          <div className="flex flex-col items-end gap-1.5">
-            <Button 
-              className="h-9 px-3" 
-              onClick={() => onApprove(request.id)} 
-              disabled={isLoading}
-            >
-              <Check className="h-3.5 w-3.5 mr-1.5" />
-              Approva
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-9 px-3" 
-              onClick={() => onCounterPropose(request)} 
-              disabled={isLoading}
-            >
-              <ArrowLeftRight className="h-3.5 w-3.5 mr-1.5" />
-              Controproponi
-            </Button>
+          {/* Riga 3: Meta */}
+          <p className="text-xs text-muted-foreground">
+            Lezione singola · {durationMinutes} min
+          </p>
 
-            {/* Rifiuta con Popover */}
-            <Popover open={confirmDeclineOpen} onOpenChange={setConfirmDeclineOpen}>
-              <PopoverTrigger asChild>
-                <button 
-                  disabled={isLoading} 
-                  className="text-xs text-destructive hover:underline disabled:opacity-50 mt-1"
+          {/* Note opzionali */}
+          {request.notes && (
+            <p className="text-xs text-muted-foreground italic line-clamp-1">
+              "{request.notes}"
+            </p>
+          )}
+        </div>
+
+        {/* BLOCCO AZIONI - Responsive stabile */}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end sm:flex-nowrap">
+          <Button
+            size="sm"
+            className="h-9 w-full sm:w-auto"
+            onClick={() => onApprove(request.id)}
+            disabled={isLoading}
+          >
+            <Check className="h-4 w-4 mr-1" />
+            Approva
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 w-full sm:w-auto"
+            onClick={() => onCounterPropose(request)}
+            disabled={isLoading}
+          >
+            <ArrowLeftRight className="h-4 w-4 mr-1" />
+            Controproponi
+          </Button>
+
+          <Popover open={confirmDeclineOpen} onOpenChange={setConfirmDeclineOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 w-full sm:w-auto text-destructive hover:text-destructive hover:bg-destructive/10"
+                disabled={isLoading}
+              >
+                Rifiuta
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56 p-3" align="end">
+              <p className="text-sm text-foreground mb-2">Rifiutare la richiesta?</p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => setConfirmDeclineOpen(false)}
+                >
+                  Annulla
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => {
+                    onDecline(request.id);
+                    setConfirmDeclineOpen(false);
+                  }}
                 >
                   Rifiuta
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-56 p-3" align="end">
-                <p className="text-sm text-foreground mb-2">Vuoi rifiutare?</p>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="flex-1" onClick={() => setConfirmDeclineOpen(false)}>
-                    Annulla
-                  </Button>
-                  <Button variant="destructive" size="sm" className="flex-1" onClick={() => { onDecline(request.id); setConfirmDeclineOpen(false); }}>
-                    Rifiuta
-                  </Button>
-                </div>
-              </PopoverContent>
-            </Popover>
-          </div>
-
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       </CardContent>
     </Card>
