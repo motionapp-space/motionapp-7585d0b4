@@ -1,105 +1,78 @@
 
-# Piano Fix: InviteLinkDialog con Helper Function
+# Piano Fix: Invalidazione Cache Onboarding in useCreateClient
 
-## Diagnosi Confermata
+## Bug Identificato
 
-Il componente `src/pages/Clients.tsx` ha **3 return separati** (ZERO_CLIENTS, FIRST_CLIENT_NO_CONTENT, ACTIVE_USER) e `InviteLinkDialog` è renderizzato solo nell'ultimo. Quando il coach crea un cliente con invito mentre è in stato ZERO_CLIENTS, il dialog non appare.
+Il hook `useCreateClient.ts` non invalida la query `['onboarding-non-archived-count']` dopo la creazione di un cliente. Questo causa un ritardo di 30 secondi (staleTime della query) prima che `clientsCount` si aggiorni e i filtri diventino visibili.
 
-## Soluzione: Helper Function `renderInviteDialog()`
+### Comportamento Attuale
 
-Creare una funzione helper per evitare duplicazione di codice e garantire consistenza.
-
-### Modifiche
-
-**File**: `src/pages/Clients.tsx`
-
-#### Parte 1: Aggiungere funzione helper (dopo le altre funzioni handler, circa riga 270)
-
-```typescript
-// Helper per renderizzare il dialog invito in tutti gli stati di onboarding
-const renderInviteDialog = () =>
-  inviteDialogData ? (
-    <InviteLinkDialog
-      open
-      onOpenChange={(open) => !open && handleCloseInviteDialog()}
-      inviteLink={inviteDialogData.inviteLink}
-      clientName={inviteDialogData.clientName}
-      email={inviteDialogData.email}
-      expiresAt={inviteDialogData.expiresAt}
-      emailSent={inviteDialogData.emailSent}
-      emailError={inviteDialogData.emailError}
-      onClose={handleCloseInviteDialog}
-    />
-  ) : null;
+```text
+Coach crea 2° cliente
+        ↓
+invalidateQueries(["clients"]) ✅
+        ↓
+["onboarding-non-archived-count"] resta in cache ❌
+        ↓
+clientsCount = 1 (stale)
+        ↓
+showFilters = false
+        ↓
+Filtri non visibili per 30 secondi
 ```
 
-#### Parte 2: Aggiungere `{renderInviteDialog()}` nel return ZERO_CLIENTS
+### Confronto Hook
 
-Prima della chiusura `</div>` finale (circa riga 512-513):
+| Hook | `["clients"]` | `["onboarding-non-archived-count"]` | `["onboarding-archived-check"]` |
+|------|---------------|-------------------------------------|----------------------------------|
+| `useCreateClient` | ✅ | ❌ MANCANTE | N/A |
+| `useArchiveClient` | ✅ | ✅ | ✅ |
+| `useUnarchiveClient` | ✅ | ✅ | ✅ |
 
-```typescript
-        </AlertDialog>
-        
-        {renderInviteDialog()}
-      </div>
-    );
-  }
-```
+---
 
-#### Parte 3: Aggiungere `{renderInviteDialog()}` nel return FIRST_CLIENT_NO_CONTENT
+## Soluzione
 
-Prima della chiusura `</div>` finale (circa riga 1086-1087):
+Aggiungere l'invalidazione delle query di onboarding in `useCreateClient.ts`.
 
-```typescript
-        </AlertDialog>
-        
-        {renderInviteDialog()}
-      </div>
-    );
-  }
-```
+### Modifica
 
-#### Parte 4: Sostituire il blocco esistente nel return ACTIVE_USER
+**File**: `src/features/clients/hooks/useCreateClient.ts`
 
-Righe 1681-1694:
+**Riga 49** (dopo `qc.invalidateQueries({ queryKey: ["clients"] });`):
 
 ```typescript
-// PRIMA
-{inviteDialogData && (
-  <InviteLinkDialog
-    open={!!inviteDialogData}
-    onOpenChange={(open) => !open && handleCloseInviteDialog()}
-    inviteLink={inviteDialogData.inviteLink}
-    clientName={inviteDialogData.clientName}
-    email={inviteDialogData.email}
-    expiresAt={inviteDialogData.expiresAt}
-    emailSent={inviteDialogData.emailSent}
-    emailError={inviteDialogData.emailError}
-    onClose={handleCloseInviteDialog}
-  />
-)}
+onSuccess: async (result: CreateClientResult) => {
+  qc.setQueryData(
+    ["client-activity", result.client.id],
+    `Cliente creato: ${result.client.first_name} ${result.client.last_name}`
+  );
 
-// DOPO
-{renderInviteDialog()}
+  // Invalidate all client list queries
+  qc.invalidateQueries({ queryKey: ["clients"] });
+  
+  // Invalidate onboarding queries to update clientsCount immediately
+  qc.invalidateQueries({ queryKey: ["onboarding-non-archived-count"] });
+  qc.invalidateQueries({ queryKey: ["onboarding-coach-clients"] });
+  
+  // Note: Navigation and success message are handled by the calling component
+  // to allow showing InviteLinkDialog before navigation
+},
 ```
+
+---
 
 ## Riepilogo
 
-| Sezione | Modifica |
-|---------|----------|
-| Helper function | Creare `renderInviteDialog()` dopo gli handler |
-| ZERO_CLIENTS return | Aggiungere `{renderInviteDialog()}` prima di `</div>` |
-| FIRST_CLIENT_NO_CONTENT return | Aggiungere `{renderInviteDialog()}` prima di `</div>` |
-| ACTIVE_USER return | Sostituire blocco inline con `{renderInviteDialog()}` |
+| File | Modifica |
+|------|----------|
+| `src/features/clients/hooks/useCreateClient.ts` | Aggiungere invalidazione di `onboarding-non-archived-count` e `onboarding-coach-clients` |
 
-## Vantaggi
-
-- Zero duplicazione di codice
-- Se aggiungi props al dialog, modifichi solo la funzione helper
-- Se aggiungi un 4° stato di onboarding, basta aggiungere una riga
-- Meno rischio di regressioni rispetto al refactoring totale con `let content`
+---
 
 ## Risultato Atteso
 
-- Quando il coach in qualsiasi stato crea un cliente con invito, il dialog appare
-- Cliccando "Vai alla scheda cliente", naviga a `/clients/{id}`
+- Quando il coach crea il 2° cliente, i filtri appaiono **immediatamente**
+- Nessun ritardo di 30 secondi
+- `clientsCount` si aggiorna in tempo reale
+- Comportamento coerente con archive/unarchive
