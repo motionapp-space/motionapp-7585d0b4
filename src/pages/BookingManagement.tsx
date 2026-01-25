@@ -142,7 +142,7 @@ const BookingManagement = () => {
             <CardHeader>
               <CardTitle>Richieste in attesa</CardTitle>
               <CardDescription>
-                Approva, rifiuta o controproponi un'altra data
+                Approva, rifiuta o proponi un altro orario ai tuoi clienti.
               </CardDescription>
             </CardHeader>
             <CardContent>

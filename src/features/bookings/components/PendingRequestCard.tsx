@@ -1,16 +1,15 @@
+import { useState } from "react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
-import { Calendar, Clock, Check, MoreHorizontal, X, RefreshCw } from "lucide-react";
+import { Check, ArrowLeftRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { ClientColorDot } from "@/components/calendar/ClientColorDot";
 import type { BookingRequestWithClient } from "../types";
 
@@ -31,62 +30,60 @@ export function PendingRequestCard({
   isApproving,
   isDeclining,
 }: PendingRequestCardProps) {
+  const [confirmDeclineOpen, setConfirmDeclineOpen] = useState(false);
+  
   const startDate = new Date(request.requested_start_at);
   const endDate = new Date(request.requested_end_at);
   const durationMinutes = Math.round((endDate.getTime() - startDate.getTime()) / 60000);
 
-  const formattedDate = format(startDate, "EEEE d MMMM yyyy", { locale: it });
-  const formattedTime = `${format(startDate, "HH:mm")} – ${format(endDate, "HH:mm")}`;
+  // Formato compatto senza capitalize
+  const formattedDateCompact = format(startDate, "EEE d MMM", { locale: it });
+  const formattedTimeRange = `${format(startDate, "HH:mm")} – ${format(endDate, "HH:mm")}`;
 
   const isLoading = isApproving || isDeclining;
 
   return (
     <Card className="overflow-hidden">
       <CardContent className="p-0">
-        {/* Header with status badge */}
-        <div className="bg-blue-50 dark:bg-blue-950/30 px-4 py-2 border-b border-blue-100 dark:border-blue-900/50">
-          <div className="flex items-center justify-between">
-            <Badge className="bg-blue-600 hover:bg-blue-600 text-white font-medium">
-              DA APPROVARE
-            </Badge>
-            <span className="text-xs text-blue-600 dark:text-blue-400">
-              Azione richiesta
-            </span>
-          </div>
+        {/* Header - Solo badge, bg-muted/30 (meno "alert-like") */}
+        <div className="bg-muted/30 px-4 py-2.5 border-b">
+          <Badge className="bg-primary hover:bg-primary text-primary-foreground font-medium">
+            Da approvare
+          </Badge>
         </div>
 
-        {/* Content */}
-        <div className="p-4 space-y-3">
-          {/* Client info */}
+        {/* Corpo - Gerarchia corretta: Data/Ora > Cliente > Tipo sessione */}
+        <div className="p-5 space-y-3">
+          {/* 1. PRIMARIO: Data e ora */}
+          <p className="text-lg font-semibold text-foreground">
+            {formattedDateCompact} · {formattedTimeRange}
+          </p>
+
+          {/* 2. SECONDARIO: Nome cliente */}
           <div className="flex items-center gap-2">
             <ClientColorDot clientId={request.coach_client_id} />
-            <span className="font-semibold text-foreground">
+            <span className="text-base font-medium text-foreground">
               {request.client_name}
             </span>
           </div>
 
-          {/* Date and time */}
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Calendar className="h-4 w-4" />
-              <span className="capitalize">{formattedDate}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium text-foreground">{formattedTime}</span>
-              <span className="text-muted-foreground">({durationMinutes} min)</span>
-            </div>
-          </div>
+          {/* 3. TERZIARIO: Tipo sessione */}
+          <p className="text-sm text-muted-foreground">
+            Lezione singola · {durationMinutes} min
+          </p>
 
-          {/* Notes if present */}
+          {/* 4. Note opzionali */}
           {request.notes && (
-            <div className="text-sm text-muted-foreground bg-muted/50 p-2 rounded-md line-clamp-2">
+            <div className="text-sm text-muted-foreground bg-muted/50 p-2.5 rounded-md">
               "{request.notes}"
             </div>
           )}
+        </div>
 
-          {/* Actions - 1 primary + dropdown for secondary */}
-          <div className="flex items-center gap-2 pt-2">
+        {/* Separatore + Azioni */}
+        <div className="border-t bg-muted/30 p-4 space-y-3">
+          {/* Bottoni principali affiancati */}
+          <div className="flex gap-3">
             <Button
               onClick={() => onApprove(request.id)}
               disabled={isLoading}
@@ -95,29 +92,54 @@ export function PendingRequestCard({
               <Check className="h-4 w-4 mr-1.5" />
               Approva
             </Button>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" disabled={isLoading}>
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onCounterPropose(request)}>
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Proponi altro orario
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={() => onDecline(request.id)}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  Rifiuta richiesta
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button
+              variant="outline"
+              onClick={() => onCounterPropose(request)}
+              disabled={isLoading}
+              className="flex-1"
+            >
+              <ArrowLeftRight className="h-4 w-4 mr-1.5" />
+              Controproponi
+            </Button>
           </div>
+
+          {/* Link distruttivo CON conferma Popover */}
+          <Popover open={confirmDeclineOpen} onOpenChange={setConfirmDeclineOpen}>
+            <PopoverTrigger asChild>
+              <button
+                disabled={isLoading}
+                className="w-full text-center text-sm text-destructive hover:underline disabled:opacity-50"
+              >
+                Rifiuta richiesta
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-4" align="center">
+              <p className="text-sm text-foreground mb-3">
+                Vuoi rifiutare la richiesta?
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => setConfirmDeclineOpen(false)}
+                >
+                  Annulla
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => {
+                    onDecline(request.id);
+                    setConfirmDeclineOpen(false);
+                  }}
+                >
+                  Rifiuta
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       </CardContent>
     </Card>
