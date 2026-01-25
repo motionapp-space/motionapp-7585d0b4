@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { startOfMonth, startOfDay, subMonths, eachDayOfInterval, format } from "date-fns";
+import { COACH_MANAGEABLE_STATUSES } from "@/lib/constants/coach-client-statuses";
 
 interface DashboardStats {
   activeClients: number;
@@ -28,7 +29,7 @@ async function fetchDashboardStats(): Promise<DashboardStats> {
     .from("coach_clients")
     .select("client_id")
     .eq("coach_id", user.id)
-    .eq("status", "active");
+    .in("status", COACH_MANAGEABLE_STATUSES);
 
   if (ccError) throw ccError;
   const clientIds = ccData?.map(cc => cc.client_id) || [];
