@@ -1,205 +1,105 @@
 
-# Piano Fix: Visibilità Clienti "Invited" per Coach
+# Piano Fix: InviteLinkDialog con Helper Function
 
-## Diagnosi Completa
+## Diagnosi Confermata
 
-### Root Cause Identificate
+Il componente `src/pages/Clients.tsx` ha **3 return separati** (ZERO_CLIENTS, FIRST_CLIENT_NO_CONTENT, ACTIVE_USER) e `InviteLinkDialog` è renderizzato solo nell'ultimo. Quando il coach crea un cliente con invito mentre è in stato ZERO_CLIENTS, il dialog non appare.
 
-Il coach non vede i clienti appena creati perché:
+## Soluzione: Helper Function `renderInviteDialog()`
 
-1. **Frontend**: Tre hook/store filtrano solo `status = 'active'`, causando `clientsCount = 0` e l'empty state
-2. **Database RLS**: Tre tabelle hanno policy INSERT che richiedono `status = 'active'`, bloccando operazioni su clienti `invited`
+Creare una funzione helper per evitare duplicazione di codice e garantire consistenza.
 
-### Flusso Buggy Attuale
+### Modifiche
 
-```text
-Coach crea cliente con invito
-        ↓
-coach_clients.status = 'invited'
-        ↓
-useOnboardingState() filtra solo 'active' → clientsCount = 0
-        ↓
-Stato = ZERO_CLIENTS → mostra empty state "Benvenuto"
-        ↓
-❌ Cliente invisibile, lista mai renderizzata
-```
+**File**: `src/pages/Clients.tsx`
 
----
-
-## Audit Completo
-
-### RLS Policies - Stato Attuale
-
-| Tabella | SELECT | INSERT | UPDATE | DELETE |
-|---------|--------|--------|--------|--------|
-| `coach_clients` | ✅ OK | ✅ OK | ✅ OK | ✅ OK |
-| `clients` | ✅ OK | ✅ OK | ✅ OK | ✅ OK |
-| `client_activities` | ✅ OK | ❌ **Richiede active** | N/A | N/A |
-| `client_tag_on_client` | ✅ OK | ❌ **Richiede active** | N/A | ✅ OK |
-| `measurements` | ✅ OK | ❌ **Richiede active** | ✅ OK | ✅ OK |
-| `events` | ✅ OK | ✅ OK | ✅ OK | ✅ OK |
-| `package` | ✅ OK | ✅ OK | ✅ OK | ✅ OK |
-| `client_plans` | ✅ OK | ✅ OK | ✅ OK | ✅ OK |
-| `training_sessions` | ✅ OK | ✅ OK | ✅ OK | ✅ OK |
-
-**Nota**: `events`, `package`, `client_plans`, `training_sessions` già funzionano per `invited` (usano `coach_client_id` senza filtro status).
-
-### Frontend - Punti da Correggere
-
-| File | Linea | Problema |
-|------|-------|----------|
-| `useOnboardingState.ts` | 44 | `.eq('status', 'active')` |
-| `useDashboardStats.ts` | 31 | `.eq("status", "active")` |
-| `useClientStore.ts` | 70 | `.eq("status", "active")` |
-
-### Frontend - Già OK (Nessuna Modifica)
-
-| File | Note |
-|------|------|
-| `clients.api.ts:42` | Usa già `.in("status", ["active", "invited"])` |
-| `clients.api.ts:264-269` | `getClientById` non filtra per status |
-| `coach-client.ts:11-16` | `getCoachClientId` non filtra per status |
-| `client-bookings.api.ts:40` | Lato CLIENT - corretto richiedere `active` |
-| `coach-client.ts:123` | `getClientCoachClientId` è lato CLIENT - corretto |
-
----
-
-## Soluzione
-
-### Parte 1: Costante Centralizzata (Prevenzione Futura)
-
-Creare un file di costanti per evitare hardcoding futuro.
-
-**Nuovo file**: `src/lib/constants/coach-client-statuses.ts`
+#### Parte 1: Aggiungere funzione helper (dopo le altre funzioni handler, circa riga 270)
 
 ```typescript
-/**
- * Status visibili lato coach per la gestione clienti.
- * Include 'invited' per permettere la gestione di clienti
- * che non hanno ancora accettato l'invito.
- */
-export const COACH_MANAGEABLE_STATUSES = ['active', 'invited'] as const;
-
-export type CoachManageableStatus = typeof COACH_MANAGEABLE_STATUSES[number];
+// Helper per renderizzare il dialog invito in tutti gli stati di onboarding
+const renderInviteDialog = () =>
+  inviteDialogData ? (
+    <InviteLinkDialog
+      open
+      onOpenChange={(open) => !open && handleCloseInviteDialog()}
+      inviteLink={inviteDialogData.inviteLink}
+      clientName={inviteDialogData.clientName}
+      email={inviteDialogData.email}
+      expiresAt={inviteDialogData.expiresAt}
+      emailSent={inviteDialogData.emailSent}
+      emailError={inviteDialogData.emailError}
+      onClose={handleCloseInviteDialog}
+    />
+  ) : null;
 ```
 
-### Parte 2: Fix Frontend
+#### Parte 2: Aggiungere `{renderInviteDialog()}` nel return ZERO_CLIENTS
 
-**File 1**: `src/features/clients/hooks/useOnboardingState.ts` (riga 44)
+Prima della chiusura `</div>` finale (circa riga 512-513):
+
+```typescript
+        </AlertDialog>
+        
+        {renderInviteDialog()}
+      </div>
+    );
+  }
+```
+
+#### Parte 3: Aggiungere `{renderInviteDialog()}` nel return FIRST_CLIENT_NO_CONTENT
+
+Prima della chiusura `</div>` finale (circa riga 1086-1087):
+
+```typescript
+        </AlertDialog>
+        
+        {renderInviteDialog()}
+      </div>
+    );
+  }
+```
+
+#### Parte 4: Sostituire il blocco esistente nel return ACTIVE_USER
+
+Righe 1681-1694:
 
 ```typescript
 // PRIMA
-.eq('status', 'active')
-
-// DOPO  
-.in('status', COACH_MANAGEABLE_STATUSES)
-```
-
-**File 2**: `src/features/dashboard/hooks/useDashboardStats.ts` (riga 31)
-
-```typescript
-// PRIMA
-.eq("status", "active")
+{inviteDialogData && (
+  <InviteLinkDialog
+    open={!!inviteDialogData}
+    onOpenChange={(open) => !open && handleCloseInviteDialog()}
+    inviteLink={inviteDialogData.inviteLink}
+    clientName={inviteDialogData.clientName}
+    email={inviteDialogData.email}
+    expiresAt={inviteDialogData.expiresAt}
+    emailSent={inviteDialogData.emailSent}
+    emailError={inviteDialogData.emailError}
+    onClose={handleCloseInviteDialog}
+  />
+)}
 
 // DOPO
-.in("status", COACH_MANAGEABLE_STATUSES)
+{renderInviteDialog()}
 ```
 
-**File 3**: `src/stores/useClientStore.ts` (riga 70)
+## Riepilogo
 
-```typescript
-// PRIMA
-.eq("status", "active")
+| Sezione | Modifica |
+|---------|----------|
+| Helper function | Creare `renderInviteDialog()` dopo gli handler |
+| ZERO_CLIENTS return | Aggiungere `{renderInviteDialog()}` prima di `</div>` |
+| FIRST_CLIENT_NO_CONTENT return | Aggiungere `{renderInviteDialog()}` prima di `</div>` |
+| ACTIVE_USER return | Sostituire blocco inline con `{renderInviteDialog()}` |
 
-// DOPO
-.in("status", COACH_MANAGEABLE_STATUSES)
-```
+## Vantaggi
 
-### Parte 3: Fix RLS Database
-
-Aggiornare le policy INSERT per includere `invited`:
-
-```sql
--- 1. client_activities INSERT
-DROP POLICY IF EXISTS "Coaches can create activities for their clients" 
-  ON public.client_activities;
-  
-CREATE POLICY "Coaches can create activities for their clients"
-ON public.client_activities FOR INSERT
-WITH CHECK (
-  client_id IN (
-    SELECT cc.client_id FROM coach_clients cc
-    WHERE cc.coach_id = auth.uid() 
-    AND cc.status IN ('active', 'invited')
-  )
-);
-
--- 2. client_tag_on_client INSERT
-DROP POLICY IF EXISTS "Coaches can add tags to their clients" 
-  ON public.client_tag_on_client;
-  
-CREATE POLICY "Coaches can add tags to their clients"
-ON public.client_tag_on_client FOR INSERT
-WITH CHECK (
-  client_id IN (
-    SELECT cc.client_id FROM coach_clients cc
-    WHERE cc.coach_id = auth.uid() 
-    AND cc.status IN ('active', 'invited')
-  )
-);
-
--- 3. measurements INSERT
-DROP POLICY IF EXISTS "Coaches can create measurements for their clients" 
-  ON public.measurements;
-  
-CREATE POLICY "Coaches can create measurements for their clients"
-ON public.measurements FOR INSERT
-WITH CHECK (
-  client_id IN (
-    SELECT cc.client_id FROM coach_clients cc
-    WHERE cc.coach_id = auth.uid() 
-    AND cc.status IN ('active', 'invited')
-  )
-);
-```
-
----
-
-## Riepilogo Modifiche
-
-| Tipo | Risorsa | Azione |
-|------|---------|--------|
-| Nuovo file | `src/lib/constants/coach-client-statuses.ts` | Creare costante centralizzata |
-| Fix FE | `useOnboardingState.ts:44` | Usare `COACH_MANAGEABLE_STATUSES` |
-| Fix FE | `useDashboardStats.ts:31` | Usare `COACH_MANAGEABLE_STATUSES` |
-| Fix FE | `useClientStore.ts:70` | Usare `COACH_MANAGEABLE_STATUSES` |
-| Fix DB | `client_activities` RLS INSERT | Aggiungere `'invited'` |
-| Fix DB | `client_tag_on_client` RLS INSERT | Aggiungere `'invited'` |
-| Fix DB | `measurements` RLS INSERT | Aggiungere `'invited'` |
-
----
+- Zero duplicazione di codice
+- Se aggiungi props al dialog, modifichi solo la funzione helper
+- Se aggiungi un 4° stato di onboarding, basta aggiungere una riga
+- Meno rischio di regressioni rispetto al refactoring totale con `let content`
 
 ## Risultato Atteso
 
-Dopo l'implementazione:
-- ✅ Clienti `invited` visibili nella lista
-- ✅ Conteggio clienti corretto (non più 0)
-- ✅ Dashboard stats includono clienti invited
-- ✅ Navigazione al dettaglio cliente funzionante
-- ✅ Coach può creare attività, tag, misurazioni per clienti invited
-- ✅ Coach può già creare eventi, pacchetti, piani, sessioni (RLS già OK)
-
----
-
-## Note Tecniche
-
-### Perché NON Modificare `coach-client.ts:123`
-
-La funzione `getClientCoachClientId()` è usata **lato CLIENT** (dall'app cliente) per trovare la propria relazione con il coach. È corretto che richieda `status = 'active'` perché:
-- Un cliente `invited` non ha ancora accettato l'invito
-- Non dovrebbe poter accedere all'app cliente finché non completa la registrazione
-- Quando accetta l'invito, lo status diventa `active`
-
-### Perché NON Modificare `client-bookings.api.ts:40`
-
-Stesso ragionamento: è codice lato CLIENT che verifica la relazione del cliente con il suo coach.
+- Quando il coach in qualsiasi stato crea un cliente con invito, il dialog appare
+- Cliccando "Vai alla scheda cliente", naviga a `/clients/{id}`
