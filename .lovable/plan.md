@@ -1,55 +1,25 @@
 
 
-# Piano: PendingRequestCard Compatta — Layout Orizzontale
+# Piano: PendingRequestCard — Layout Grid 3 Colonne
 
-## Obiettivo
+## Problema Attuale
 
-Ridurre l'altezza della card del ~35-45% passando da layout **verticale stacked** a **orizzontale 2-righe** con azioni sulla destra.
+Il layout `flex` attuale ha questi limiti:
+- Badge e Data/Ora sulla stessa riga possono causare wrap non predicibili
+- Bottoni con `size="sm"` ma senza larghezza controllata
+- Troncamento "casuale" che può tagliare anche la data/ora
 
-## Confronto Visivo
-
-### PRIMA (Attuale — Stacked)
-```text
-┌─────────────────────────────────────┐
-│ 🔵 Da approvare                     │  ← Header separato
-├─────────────────────────────────────┤
-│ lun 12 gen · 10:00–11:00            │  ← Riga 1
-│ 🔴 Matthew Count                     │  ← Riga 2
-│ Lezione singola · 60 min            │  ← Riga 3
-│ "Note opzionali..."                 │  ← Riga 4 (opzionale)
-├─────────────────────────────────────┤
-│ [Approva] [Controproponi]           │  ← Azioni separate
-│       Rifiuta richiesta             │
-└─────────────────────────────────────┘
-```
-
-### DOPO (Compatto — Orizzontale)
-```text
-┌──────────────────────────────────────────────────────────────┐
-│ ← INFO (flex-1)                        → AZIONI (shrink-0)   │
-│                                                              │
-│ 🔵 Da approvare  lun 12 gen · 10:00–11:00                    │
-│ 🔴 Matthew Count · Lezione singola · 60 min    [✓] [↔]       │
-│ "Note opzionali..."                             Rifiuta      │
-└──────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Struttura JSX Target
+## Soluzione: Grid 3 Colonne
 
 ```text
-Card
-└── CardContent (p-4)
-    └── flex items-start gap-4
-        ├── LEFT (flex-1 min-w-0 space-y-1.5)
-        │   ├── Riga 1: Badge + Data/Ora (flex items-center gap-2)
-        │   ├── Riga 2: ClientDot + Nome + " · " + Tipo + Durata
-        │   └── Riga 3: Note (opzionale, compatte)
-        │
-        └── RIGHT (shrink-0 flex flex-col items-end gap-2)
-            ├── Row: [Approva sm] [Controproponi sm outline]
-            └── Rifiuta (text link + Popover conferma)
+┌────────────┬──────────────────────────────────┬─────────────────────────┐
+│   STATO    │             INFO                 │        AZIONI           │
+│   (auto)   │             (1fr)                │         (auto)          │
+├────────────┼──────────────────────────────────┼─────────────────────────┤
+│            │ lun 12 gen · 10:00–11:00         │  [Approva]              │
+│ Da approv. │ 🔴 Matthew Count · 60 min        │  [Controproponi]        │
+│            │ "Note opzionali..."              │  Rifiuta                │
+└────────────┴──────────────────────────────────┴─────────────────────────┘
 ```
 
 ---
@@ -58,74 +28,90 @@ Card
 
 **File**: `src/features/bookings/components/PendingRequestCard.tsx`
 
-### Cambiamenti Chiave
+### Cambiamenti Strutturali
 
 | Area | Prima | Dopo |
 |------|-------|------|
-| **Layout** | Stacked verticale | Orizzontale con `flex items-start gap-4` |
-| **Header** | Separato con `border-b` | Badge inline con data/ora |
-| **Info** | 4 elementi separati | 2 righe compatte |
-| **Azioni** | Full-width sotto | Colonna destra, size `sm` |
-| **Note** | Box `bg-muted/50 p-2.5` | Inline `italic` senza box |
-| **Altezza** | ~180-200px | ~80-100px |
+| **Layout** | `flex items-start gap-4` | `grid grid-cols-[auto_1fr_auto] gap-4` |
+| **Badge** | Inline con data/ora | Colonna dedicata `auto` |
+| **Data/Ora** | Può wrappare | `whitespace-nowrap` (mai troncata) |
+| **Nome** | `truncate` | `truncate` (mantenuto) |
+| **Bottoni** | `size="sm"` | `h-9 px-3` esplicito per controllo larghezza |
+| **Azioni** | Flex column | Flex column con bottoni stacked |
 
-### Codice Completo
+### Codice Target
 
 ```tsx
 <Card className="overflow-hidden">
   <CardContent className="p-4">
-    <div className="flex items-start gap-4">
-      
-      {/* LEFT: Info (2 righe) */}
-      <div className="flex-1 min-w-0 space-y-1.5">
-        
-        {/* Riga 1: Badge + Data/Ora */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <Badge className="bg-primary hover:bg-primary text-primary-foreground text-xs font-medium">
-            Da approvare
-          </Badge>
-          <span className="text-sm font-semibold text-foreground">
+    {/* 3 colonne: Stato | Info | Azioni */}
+    <div className="grid grid-cols-[auto_1fr_auto] gap-4 items-start">
+
+      {/* COL 1: Stato (fissa, piccola) */}
+      <div className="pt-0.5">
+        <Badge className="bg-primary hover:bg-primary text-primary-foreground text-xs font-medium whitespace-nowrap">
+          Da approvare
+        </Badge>
+      </div>
+
+      {/* COL 2: Info (elastica) */}
+      <div className="flex flex-col space-y-1.5 min-w-0">
+        {/* Riga 1: Data/ora mai troncata */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-sm font-semibold text-foreground whitespace-nowrap">
             {formattedDateCompact} · {formattedTimeRange}
           </span>
         </div>
-        
-        {/* Riga 2: Cliente + Tipo sessione */}
-        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <ClientColorDot clientId={request.coach_client_id} />
-          <span className="font-medium text-foreground truncate">
-            {request.client_name}
-          </span>
-          <span>·</span>
+
+        {/* Riga 2: Nome troncabile + meta troncabile */}
+        <div className="flex items-center gap-1.5 text-sm text-muted-foreground min-w-0">
+          <div className="flex items-center gap-1.5 min-w-0 truncate">
+            <ClientColorDot clientId={request.coach_client_id} />
+            <span className="font-medium text-foreground truncate">
+              {request.client_name}
+            </span>
+          </div>
+          <span className="shrink-0">·</span>
           <span className="truncate">
             Lezione singola · {durationMinutes} min
           </span>
         </div>
-        
-        {/* Note opzionali - compatte */}
+
+        {/* Note opzionali */}
         {request.notes && (
-          <p className="text-xs text-muted-foreground italic truncate">
+          <p className="text-xs text-muted-foreground italic line-clamp-1">
             "{request.notes}"
           </p>
         )}
       </div>
-      
-      {/* RIGHT: Azioni compatte */}
-      <div className="shrink-0 flex flex-col items-end gap-2">
-        <div className="flex gap-2">
-          <Button size="sm" onClick={() => onApprove(request.id)} disabled={isLoading}>
-            <Check className="h-3.5 w-3.5 mr-1" />
-            Approva
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => onCounterPropose(request)} disabled={isLoading}>
-            <ArrowLeftRight className="h-3.5 w-3.5 mr-1" />
-            Controproponi
-          </Button>
-        </div>
-        
-        {/* Rifiuta con Popover conferma (MANTENUTO) */}
+
+      {/* COL 3: Azioni (fissa, allineata) */}
+      <div className="flex flex-col items-end gap-1.5">
+        <Button 
+          className="h-9 px-3" 
+          onClick={() => onApprove(request.id)} 
+          disabled={isLoading}
+        >
+          <Check className="h-3.5 w-3.5 mr-1.5" />
+          Approva
+        </Button>
+        <Button 
+          variant="outline" 
+          className="h-9 px-3" 
+          onClick={() => onCounterPropose(request)} 
+          disabled={isLoading}
+        >
+          <ArrowLeftRight className="h-3.5 w-3.5 mr-1.5" />
+          Controproponi
+        </Button>
+
+        {/* Rifiuta con Popover */}
         <Popover open={confirmDeclineOpen} onOpenChange={setConfirmDeclineOpen}>
           <PopoverTrigger asChild>
-            <button disabled={isLoading} className="text-xs text-destructive hover:underline disabled:opacity-50">
+            <button 
+              disabled={isLoading} 
+              className="text-xs text-destructive hover:underline disabled:opacity-50 mt-1"
+            >
               Rifiuta
             </button>
           </PopoverTrigger>
@@ -142,7 +128,7 @@ Card
           </PopoverContent>
         </Popover>
       </div>
-      
+
     </div>
   </CardContent>
 </Card>
@@ -150,33 +136,47 @@ Card
 
 ---
 
-## Micro-Tuning Inclusi
+## Vantaggi del Layout Grid
 
-| Fix | Implementazione |
-|-----|-----------------|
-| **Icone più piccole** | `h-3.5 w-3.5` invece di `h-4 w-4` |
-| **Button size** | `size="sm"` per ridurre altezza |
-| **Badge compatto** | `text-xs` |
-| **Note senza box** | `italic truncate` invece di `bg-muted/50 p-2.5` |
-| **Popover mantenuto** | Conferma "Rifiuta" con align `end` |
-| **Truncate** | Su nome cliente e note per evitare overflow |
+| Aspetto | Flex (prima) | Grid (dopo) |
+|---------|--------------|-------------|
+| **Controllo colonne** | Implicito | Esplicito `auto_1fr_auto` |
+| **Data/Ora** | Può wrappare | `whitespace-nowrap` garantito |
+| **Badge** | Compete con info | Colonna dedicata stabile |
+| **Bottoni** | Larghezza variabile | `h-9 px-3` consistente |
+| **Rifiuta** | Sotto i bottoni | Stessa colonna, allineato |
 
 ---
 
-## Responsive Behavior
+## Regole di Troncamento
 
-Il layout è progettato per funzionare su desktop. Su mobile molto stretto, le azioni potrebbero "wrappare" sotto le info, ma il `min-w-0` e `truncate` prevengono overflow.
+| Elemento | Comportamento |
+|----------|---------------|
+| **Data/Ora** | MAI troncata (`whitespace-nowrap`) |
+| **Nome cliente** | Può troncare (`truncate`) |
+| **Metadata** | Può troncare (`truncate`) |
+| **Note** | `line-clamp-1` (una riga max) |
+| **Badge** | MAI troncato (`whitespace-nowrap`) |
+
+---
+
+## Riepilogo Modifiche
+
+| Riga | Modifica |
+|------|----------|
+| 48 | `flex items-start gap-4` → `grid grid-cols-[auto_1fr_auto] gap-4 items-start` |
+| 51-61 | Badge in colonna separata |
+| 54-61 | Data/ora con `whitespace-nowrap` |
+| 64-73 | Nome e meta con troncamento controllato |
+| 85-93 | Bottoni con `className="h-9 px-3"` invece di `size="sm"` |
 
 ---
 
 ## Risultato Atteso
 
-| Metrica | Prima | Dopo |
-|---------|-------|------|
-| **Altezza card** | ~180px | ~85px |
-| **Riduzione** | — | **~53%** |
-| **Scan visivo** | 3-4 secondi | <2 secondi |
-| **Densità lista** | 3-4 card visibili | 6-8 card visibili |
-
-Il coach può processare più richieste senza scroll eccessivo.
+- Badge sempre visibile in colonna dedicata
+- Data/ora mai troncata
+- Bottoni bilanciati e non dominanti
+- Layout stabile che non "mangia" elementi
+- Rifiuta posizionato correttamente sotto i bottoni
 
