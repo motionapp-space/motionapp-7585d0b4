@@ -6,10 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { ClientColorDot } from "@/components/calendar/ClientColorDot";
 import type { BookingRequestWithClient } from "../types";
 
@@ -103,8 +109,8 @@ export function PendingRequestCard({
             Controproponi
           </Button>
 
-          <Popover open={confirmDeclineOpen} onOpenChange={setConfirmDeclineOpen}>
-            <PopoverTrigger asChild>
+          <AlertDialog open={confirmDeclineOpen} onOpenChange={setConfirmDeclineOpen}>
+            <AlertDialogTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
@@ -113,32 +119,28 @@ export function PendingRequestCard({
               >
                 Rifiuta
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-56 p-3" align="end">
-              <p className="text-sm text-foreground mb-2">Rifiutare la richiesta?</p>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => setConfirmDeclineOpen(false)}
-                >
-                  Annulla
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="flex-1"
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Rifiutare la richiesta?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Questa azione non può essere annullata. Il cliente verrà notificato del rifiuto.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annulla</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   onClick={() => {
                     onDecline(request.id);
                     setConfirmDeclineOpen(false);
                   }}
                 >
                   Rifiuta
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </CardContent>
     </Card>
