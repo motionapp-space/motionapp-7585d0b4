@@ -270,6 +270,22 @@ const Clients = () => {
     { value: "activity_status", label: "Attività (inattivi → attivi)" },
   ];
 
+  // Helper per renderizzare il dialog invito in tutti gli stati di onboarding
+  const renderInviteDialog = () =>
+    inviteDialogData ? (
+      <InviteLinkDialog
+        open
+        onOpenChange={(open) => !open && handleCloseInviteDialog()}
+        inviteLink={inviteDialogData.inviteLink}
+        clientName={inviteDialogData.clientName}
+        email={inviteDialogData.email}
+        expiresAt={inviteDialogData.expiresAt}
+        emailSent={inviteDialogData.emailSent}
+        emailError={inviteDialogData.emailError}
+        onClose={handleCloseInviteDialog}
+      />
+    ) : null;
+
   const hasActiveFilters =
     filters.withoutPlan ||
     filters.packageToRenew ||
@@ -510,6 +526,8 @@ const Clients = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {renderInviteDialog()}
       </div>
     );
   }
@@ -1084,6 +1102,8 @@ const Clients = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {renderInviteDialog()}
       </div>
     );
   }
@@ -1678,20 +1698,7 @@ const Clients = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Invite Link Dialog */}
-      {inviteDialogData && (
-        <InviteLinkDialog
-          open={!!inviteDialogData}
-          onOpenChange={(open) => !open && handleCloseInviteDialog()}
-          inviteLink={inviteDialogData.inviteLink}
-          clientName={inviteDialogData.clientName}
-          email={inviteDialogData.email}
-          expiresAt={inviteDialogData.expiresAt}
-          emailSent={inviteDialogData.emailSent}
-          emailError={inviteDialogData.emailError}
-          onClose={handleCloseInviteDialog}
-        />
-      )}
+      {renderInviteDialog()}
     </div>
   );
 };
