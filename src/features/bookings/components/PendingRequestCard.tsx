@@ -44,102 +44,76 @@ export function PendingRequestCard({
 
   return (
     <Card className="overflow-hidden">
-      <CardContent className="p-0">
-        {/* Header - Solo badge, bg-muted/30 (meno "alert-like") */}
-        <div className="bg-muted/30 px-4 py-2.5 border-b">
-          <Badge className="bg-primary hover:bg-primary text-primary-foreground font-medium">
-            Da approvare
-          </Badge>
-        </div>
-
-        {/* Corpo - Gerarchia corretta: Data/Ora > Cliente > Tipo sessione */}
-        <div className="p-5 space-y-3">
-          {/* 1. PRIMARIO: Data e ora */}
-          <p className="text-lg font-semibold text-foreground">
-            {formattedDateCompact} · {formattedTimeRange}
-          </p>
-
-          {/* 2. SECONDARIO: Nome cliente */}
-          <div className="flex items-center gap-2">
-            <ClientColorDot clientId={request.coach_client_id} />
-            <span className="text-base font-medium text-foreground">
-              {request.client_name}
-            </span>
-          </div>
-
-          {/* 3. TERZIARIO: Tipo sessione */}
-          <p className="text-sm text-muted-foreground">
-            Lezione singola · {durationMinutes} min
-          </p>
-
-          {/* 4. Note opzionali */}
-          {request.notes && (
-            <div className="text-sm text-muted-foreground bg-muted/50 p-2.5 rounded-md">
-              "{request.notes}"
+      <CardContent className="p-4">
+        <div className="flex items-start gap-4">
+          
+          {/* LEFT: Info (2 righe) */}
+          <div className="flex-1 min-w-0 space-y-1.5">
+            
+            {/* Riga 1: Badge + Data/Ora */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge className="bg-primary hover:bg-primary text-primary-foreground text-xs font-medium">
+                Da approvare
+              </Badge>
+              <span className="text-sm font-semibold text-foreground">
+                {formattedDateCompact} · {formattedTimeRange}
+              </span>
             </div>
-          )}
-        </div>
-
-        {/* Separatore + Azioni */}
-        <div className="border-t bg-muted/30 p-4 space-y-3">
-          {/* Bottoni principali affiancati */}
-          <div className="flex gap-3">
-            <Button
-              onClick={() => onApprove(request.id)}
-              disabled={isLoading}
-              className="flex-1"
-            >
-              <Check className="h-4 w-4 mr-1.5" />
-              Approva
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => onCounterPropose(request)}
-              disabled={isLoading}
-              className="flex-1"
-            >
-              <ArrowLeftRight className="h-4 w-4 mr-1.5" />
-              Controproponi
-            </Button>
-          </div>
-
-          {/* Link distruttivo CON conferma Popover */}
-          <Popover open={confirmDeclineOpen} onOpenChange={setConfirmDeclineOpen}>
-            <PopoverTrigger asChild>
-              <button
-                disabled={isLoading}
-                className="w-full text-center text-sm text-destructive hover:underline disabled:opacity-50"
-              >
-                Rifiuta richiesta
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-64 p-4" align="center">
-              <p className="text-sm text-foreground mb-3">
-                Vuoi rifiutare la richiesta?
+            
+            {/* Riga 2: Cliente + Tipo sessione */}
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <ClientColorDot clientId={request.coach_client_id} />
+              <span className="font-medium text-foreground truncate">
+                {request.client_name}
+              </span>
+              <span>·</span>
+              <span className="truncate">
+                Lezione singola · {durationMinutes} min
+              </span>
+            </div>
+            
+            {/* Note opzionali - compatte */}
+            {request.notes && (
+              <p className="text-xs text-muted-foreground italic truncate">
+                "{request.notes}"
               </p>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => setConfirmDeclineOpen(false)}
-                >
-                  Annulla
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => {
-                    onDecline(request.id);
-                    setConfirmDeclineOpen(false);
-                  }}
-                >
+            )}
+          </div>
+          
+          {/* RIGHT: Azioni compatte */}
+          <div className="shrink-0 flex flex-col items-end gap-2">
+            <div className="flex gap-2">
+              <Button size="sm" onClick={() => onApprove(request.id)} disabled={isLoading}>
+                <Check className="h-3.5 w-3.5 mr-1" />
+                Approva
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => onCounterPropose(request)} disabled={isLoading}>
+                <ArrowLeftRight className="h-3.5 w-3.5 mr-1" />
+                Controproponi
+              </Button>
+            </div>
+            
+            {/* Rifiuta con Popover conferma */}
+            <Popover open={confirmDeclineOpen} onOpenChange={setConfirmDeclineOpen}>
+              <PopoverTrigger asChild>
+                <button disabled={isLoading} className="text-xs text-destructive hover:underline disabled:opacity-50">
                   Rifiuta
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-56 p-3" align="end">
+                <p className="text-sm text-foreground mb-2">Vuoi rifiutare?</p>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" className="flex-1" onClick={() => setConfirmDeclineOpen(false)}>
+                    Annulla
+                  </Button>
+                  <Button variant="destructive" size="sm" className="flex-1" onClick={() => { onDecline(request.id); setConfirmDeclineOpen(false); }}>
+                    Rifiuta
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+          
         </div>
       </CardContent>
     </Card>
