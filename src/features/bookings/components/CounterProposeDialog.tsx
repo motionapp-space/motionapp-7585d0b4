@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { format, startOfDay, addDays, parseISO } from "date-fns";
 import { it } from "date-fns/locale";
-import { Calendar, Clock, ChevronDown, ChevronUp, Check, Sparkles } from "lucide-react";
+import { Clock, ChevronDown, ChevronUp, Check, Sparkles } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import {
   Collapsible,
@@ -167,17 +166,19 @@ export function CounterProposeDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[90vh] p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden">
-        {/* Header - Original Request Context */}
+        {/* Header - Subtitle guida + chip richiesta originale */}
         <div className="bg-muted/50 border-b px-4 py-3">
-          <DialogHeader className="space-y-1">
-            <DialogTitle className="text-base font-medium">
-              Proponi nuovo orario
+          <DialogHeader className="space-y-2">
+            <DialogTitle className="text-lg font-semibold">
+              Proponi un nuovo orario
             </DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              Il cliente potrà accettare o rifiutare la tua proposta.
+            </p>
             {originalStart && originalEnd && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>Richiesta originale:</span>
-                <Badge variant="outline" className="font-normal">
-                  {format(originalStart, "EEE d MMM", { locale: it })} · {format(originalStart, "HH:mm")}–{format(originalEnd, "HH:mm")}
+              <div className="pt-1">
+                <Badge variant="outline" className="font-normal text-sm py-1 px-3">
+                  Richiesta: {format(originalStart, "EEE d MMM", { locale: it })} · {format(originalStart, "HH:mm")}–{format(originalEnd, "HH:mm")}
                 </Badge>
               </div>
             )}
@@ -188,9 +189,14 @@ export function CounterProposeDialog({
           {/* Suggested Slots Section */}
           {suggestedSlots.length > 0 && (
             <div className="px-4 py-3 border-b bg-primary/5">
-              <div className="flex items-center gap-2 text-sm font-medium text-primary mb-2">
-                <Sparkles className="h-4 w-4" />
-                Orari consigliati
+              <div className="space-y-1 mb-3">
+                <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                  <Sparkles className="h-4 w-4" />
+                  Orari suggeriti
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Suggeriti in base alla tua disponibilità. Puoi anche scegliere un giorno e orario diverso.
+                </p>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {suggestedSlots.map((slot, idx) => (
@@ -208,7 +214,7 @@ export function CounterProposeDialog({
                         : "border-border bg-background"
                     )}
                   >
-                    <span className="text-xs text-muted-foreground capitalize">
+                    <span className="text-xs text-muted-foreground">
                       {formatSlotDate(slot)}
                     </span>
                     <span className="text-sm font-medium flex items-center gap-1">
@@ -225,10 +231,9 @@ export function CounterProposeDialog({
 
           {/* Calendar Section */}
           <div className="px-4 py-3 border-b">
-            <div className="flex items-center gap-2 text-sm font-medium mb-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+            <p className="text-sm font-medium text-foreground mb-3">
               Scegli un giorno alternativo
-            </div>
+            </p>
             <CalendarComponent
               mode="single"
               selected={selectedDate}
@@ -253,14 +258,21 @@ export function CounterProposeDialog({
             />
           </div>
 
-          {/* Time Slots Section */}
+          {/* Placeholder quando nessun giorno selezionato */}
+          {!selectedDate && (
+            <div className="px-4 py-6 text-center">
+              <p className="text-sm text-muted-foreground">
+                Seleziona un giorno per vedere gli orari disponibili
+              </p>
+            </div>
+          )}
+
+          {/* Time Slots Section - solo se data selezionata */}
           {selectedDate && (
             <div className="px-4 py-3">
               <div className="flex items-center gap-2 text-sm font-medium mb-3">
                 <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className="capitalize">
-                  {format(selectedDate, "EEEE d MMMM", { locale: it })}
-                </span>
+                <span>Orari disponibili</span>
               </div>
               
               <div className="space-y-3">
@@ -347,27 +359,43 @@ export function CounterProposeDialog({
           )}
         </div>
 
-        {/* Footer - Dynamic CTA */}
+        {/* Footer - Dynamic CTA con feedback selezione parziale */}
         <div className="border-t bg-background p-4">
           {selectedSlot ? (
             <div className="space-y-2">
-              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                <Check className="h-4 w-4 text-green-600" />
-                Proposta pronta per l'invio
-              </div>
+              <p className="text-center text-sm text-muted-foreground">
+                Nuova proposta: <span className="font-medium text-foreground">
+                  {formatSlotDate(selectedSlot)} · {formatSlotTime(selectedSlot)}
+                </span>
+              </p>
               <Button 
                 onClick={handleSubmit} 
                 disabled={isSubmitting}
                 className="w-full"
                 size="lg"
               >
-                Proponi · {formatSlotDate(selectedSlot)} · {formatSlotTime(selectedSlot)}
+                Invia controproposta
               </Button>
             </div>
           ) : (
-            <Button disabled className="w-full" size="lg">
-              Seleziona un orario
-            </Button>
+            <div className="space-y-2">
+              {/* Riepilogo selezione parziale */}
+              {selectedDate && !selectedSlot && (
+                <p className="text-center text-sm text-muted-foreground">
+                  Giorno selezionato: {format(selectedDate, "d MMM", { locale: it })} · scegli un orario
+                </p>
+              )}
+              
+              <Button disabled className="w-full" size="lg">
+                Invia controproposta
+              </Button>
+              
+              {!selectedDate && (
+                <p className="text-center text-sm text-muted-foreground">
+                  Seleziona un giorno e un orario per continuare
+                </p>
+              )}
+            </div>
           )}
         </div>
       </DialogContent>
