@@ -48,6 +48,10 @@ export function useCreateClient() {
       // Invalidate all client list queries
       qc.invalidateQueries({ queryKey: ["clients"] });
       
+      // Invalidate onboarding queries to update clientsCount immediately
+      qc.invalidateQueries({ queryKey: ["onboarding-non-archived-count"] });
+      qc.invalidateQueries({ queryKey: ["onboarding-coach-clients"] });
+      
       // Note: Navigation and success message are handled by the calling component
       // to allow showing InviteLinkDialog before navigation
     },
