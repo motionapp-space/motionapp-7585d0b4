@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useClientsQuery } from "./useClientsQuery";
+import { COACH_MANAGEABLE_STATUSES } from "@/lib/constants/coach-client-statuses";
 
 export type OnboardingStateType = 'ZERO_CLIENTS' | 'FIRST_CLIENT_NO_CONTENT' | 'ACTIVE_USER';
 
@@ -41,7 +42,7 @@ export function useOnboardingState(): OnboardingState {
         .from('coach_clients')
         .select('client_id')
         .eq('coach_id', user.user.id)
-        .eq('status', 'active');
+        .in('status', COACH_MANAGEABLE_STATUSES);
 
       if (ccError) throw ccError;
       const clientIds = ccData?.map(cc => cc.client_id) || [];

@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { supabase } from "@/integrations/supabase/client";
 import type { Client, ClientTag, ClientStatus, ClientWithTags, ClientWithDetails, PlanStatus, ActivityType } from "@/types/client";
 import { toast } from "sonner";
+import { COACH_MANAGEABLE_STATUSES } from "@/lib/constants/coach-client-statuses";
 
 interface ClientFilters {
   search: string;
@@ -67,7 +68,7 @@ export const useClientStore = create<ClientStore>((set, get) => ({
         .from("coach_clients")
         .select("client_id")
         .eq("coach_id", user.id)
-        .eq("status", "active");
+        .in("status", COACH_MANAGEABLE_STATUSES);
 
       if (ccError) throw ccError;
       const clientIds = ccData?.map(cc => cc.client_id) || [];
