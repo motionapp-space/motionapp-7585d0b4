@@ -45,58 +45,74 @@ export function PendingRequestCard({
   return (
     <Card className="overflow-hidden">
       <CardContent className="p-4">
-        <div className="flex items-start gap-4">
-          
-          {/* LEFT: Info (2 righe) */}
-          <div className="flex-1 min-w-0 space-y-1.5">
-            
-            {/* Riga 1: Badge + Data/Ora */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <Badge className="bg-primary hover:bg-primary text-primary-foreground text-xs font-medium">
-                Da approvare
-              </Badge>
-              <span className="text-sm font-semibold text-foreground">
+        {/* 3 colonne: Stato | Info | Azioni */}
+        <div className="grid grid-cols-[auto_1fr_auto] gap-4 items-start">
+
+          {/* COL 1: Stato (fissa, piccola) */}
+          <div className="pt-0.5">
+            <Badge className="bg-primary hover:bg-primary text-primary-foreground text-xs font-medium whitespace-nowrap">
+              Da approvare
+            </Badge>
+          </div>
+
+          {/* COL 2: Info (elastica) */}
+          <div className="flex flex-col space-y-1.5 min-w-0">
+            {/* Riga 1: Data/ora mai troncata */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm font-semibold text-foreground whitespace-nowrap">
                 {formattedDateCompact} · {formattedTimeRange}
               </span>
             </div>
-            
-            {/* Riga 2: Cliente + Tipo sessione */}
-            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <ClientColorDot clientId={request.coach_client_id} />
-              <span className="font-medium text-foreground truncate">
-                {request.client_name}
-              </span>
-              <span>·</span>
+
+            {/* Riga 2: Nome troncabile + meta troncabile */}
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground min-w-0">
+              <div className="flex items-center gap-1.5 min-w-0 truncate">
+                <ClientColorDot clientId={request.coach_client_id} />
+                <span className="font-medium text-foreground truncate">
+                  {request.client_name}
+                </span>
+              </div>
+              <span className="shrink-0">·</span>
               <span className="truncate">
                 Lezione singola · {durationMinutes} min
               </span>
             </div>
-            
-            {/* Note opzionali - compatte */}
+
+            {/* Note opzionali */}
             {request.notes && (
-              <p className="text-xs text-muted-foreground italic truncate">
+              <p className="text-xs text-muted-foreground italic line-clamp-1">
                 "{request.notes}"
               </p>
             )}
           </div>
-          
-          {/* RIGHT: Azioni compatte */}
-          <div className="shrink-0 flex flex-col items-end gap-2">
-            <div className="flex gap-2">
-              <Button size="sm" onClick={() => onApprove(request.id)} disabled={isLoading}>
-                <Check className="h-3.5 w-3.5 mr-1" />
-                Approva
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => onCounterPropose(request)} disabled={isLoading}>
-                <ArrowLeftRight className="h-3.5 w-3.5 mr-1" />
-                Controproponi
-              </Button>
-            </div>
-            
-            {/* Rifiuta con Popover conferma */}
+
+          {/* COL 3: Azioni (fissa, allineata) */}
+          <div className="flex flex-col items-end gap-1.5">
+            <Button 
+              className="h-9 px-3" 
+              onClick={() => onApprove(request.id)} 
+              disabled={isLoading}
+            >
+              <Check className="h-3.5 w-3.5 mr-1.5" />
+              Approva
+            </Button>
+            <Button 
+              variant="outline" 
+              className="h-9 px-3" 
+              onClick={() => onCounterPropose(request)} 
+              disabled={isLoading}
+            >
+              <ArrowLeftRight className="h-3.5 w-3.5 mr-1.5" />
+              Controproponi
+            </Button>
+
+            {/* Rifiuta con Popover */}
             <Popover open={confirmDeclineOpen} onOpenChange={setConfirmDeclineOpen}>
               <PopoverTrigger asChild>
-                <button disabled={isLoading} className="text-xs text-destructive hover:underline disabled:opacity-50">
+                <button 
+                  disabled={isLoading} 
+                  className="text-xs text-destructive hover:underline disabled:opacity-50 mt-1"
+                >
                   Rifiuta
                 </button>
               </PopoverTrigger>
@@ -113,7 +129,7 @@ export function PendingRequestCard({
               </PopoverContent>
             </Popover>
           </div>
-          
+
         </div>
       </CardContent>
     </Card>
