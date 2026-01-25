@@ -75,13 +75,15 @@ export function TimePicker({
         </Button>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-[160px] p-0 pointer-events-auto" 
+        className="w-[160px] p-0 pointer-events-auto z-[100]" 
         align="start" 
         sideOffset={4}
+        onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <div 
           ref={scrollRef}
-          className="h-[280px] overflow-y-auto overscroll-contain"
+          className="h-[280px] overflow-y-auto overscroll-contain touch-pan-y bg-popover border rounded-md shadow-md"
+          style={{ WebkitOverflowScrolling: 'touch' }}
         >
           <div className="p-1.5 space-y-0.5">
             {TIME_OPTIONS.map((time) => (
