@@ -1,137 +1,205 @@
 
-# Piano: Eliminazione Completa del Sistema Legacy `usePackageSettings`
+# Piano Fix: Visibilità Clienti "Invited" per Coach
 
-## Problema
-Il sistema legacy `usePackageSettings` doveva essere rimosso ma è ancora attivo, causando:
-- **Bug del prezzo**: prodotti con `credits_amount: 1` multipli (legacy) sovrascrivono il prezzo corretto
-- **Cache non sincronizzata**: query key `["package-settings"]` separata da `["products"]`
-- **Codice duplicato**: funzioni deprecate ancora in uso
+## Diagnosi Completa
 
-## Modifiche Proposte
+### Root Cause Identificate
 
-### File 1: `src/features/events/components/EventEditorModal.tsx`
+Il coach non vede i clienti appena creati perché:
 
-#### 1.1 — Sostituire import (riga 12)
+1. **Frontend**: Tre hook/store filtrano solo `status = 'active'`, causando `clientsCount = 0` e l'empty state
+2. **Database RLS**: Tre tabelle hanno policy INSERT che richiedono `status = 'active'`, bloccando operazioni su clienti `invited`
 
-Da:
-```typescript
-import { usePackageSettings } from "@/features/packages/hooks/usePackageSettings";
-```
+### Flusso Buggy Attuale
 
-A:
-```typescript
-import { useActiveProducts } from "@/features/products/hooks/useProducts";
-```
-
-#### 1.2 — Sostituire hook usage (riga 211)
-
-Da:
-```typescript
-const { data: packageSettings } = usePackageSettings();
-```
-
-A:
-```typescript
-const { data: activeProducts } = useActiveProducts();
-```
-
-#### 1.3 — Aggiornare `defaultSinglePrice` (righe 429-432)
-
-Da:
-```typescript
-const defaultSinglePrice = useMemo(() => {
-  return packageSettings?.sessions_1_price ?? 5000; // 50€ default
-}, [packageSettings]);
-```
-
-A:
-```typescript
-const defaultSinglePrice = useMemo(() => {
-  const singleProduct = activeProducts?.find(p => p.type === 'single_session');
-  return singleProduct?.price_cents ?? 5000; // 50€ default
-}, [activeProducts]);
+```text
+Coach crea cliente con invito
+        ↓
+coach_clients.status = 'invited'
+        ↓
+useOnboardingState() filtra solo 'active' → clientsCount = 0
+        ↓
+Stato = ZERO_CLIENTS → mostra empty state "Benvenuto"
+        ↓
+❌ Cliente invisibile, lista mai renderizzata
 ```
 
 ---
 
-### File 2: `src/features/packages/hooks/usePackageSettings.ts`
+## Audit Completo
 
-**Eliminare completamente il file** — non è più usato da nessun componente dopo la modifica a EventEditorModal.
+### RLS Policies - Stato Attuale
+
+| Tabella | SELECT | INSERT | UPDATE | DELETE |
+|---------|--------|--------|--------|--------|
+| `coach_clients` | ✅ OK | ✅ OK | ✅ OK | ✅ OK |
+| `clients` | ✅ OK | ✅ OK | ✅ OK | ✅ OK |
+| `client_activities` | ✅ OK | ❌ **Richiede active** | N/A | N/A |
+| `client_tag_on_client` | ✅ OK | ❌ **Richiede active** | N/A | ✅ OK |
+| `measurements` | ✅ OK | ❌ **Richiede active** | ✅ OK | ✅ OK |
+| `events` | ✅ OK | ✅ OK | ✅ OK | ✅ OK |
+| `package` | ✅ OK | ✅ OK | ✅ OK | ✅ OK |
+| `client_plans` | ✅ OK | ✅ OK | ✅ OK | ✅ OK |
+| `training_sessions` | ✅ OK | ✅ OK | ✅ OK | ✅ OK |
+
+**Nota**: `events`, `package`, `client_plans`, `training_sessions` già funzionano per `invited` (usano `coach_client_id` senza filtro status).
+
+### Frontend - Punti da Correggere
+
+| File | Linea | Problema |
+|------|-------|----------|
+| `useOnboardingState.ts` | 44 | `.eq('status', 'active')` |
+| `useDashboardStats.ts` | 31 | `.eq("status", "active")` |
+| `useClientStore.ts` | 70 | `.eq("status", "active")` |
+
+### Frontend - Già OK (Nessuna Modifica)
+
+| File | Note |
+|------|------|
+| `clients.api.ts:42` | Usa già `.in("status", ["active", "invited"])` |
+| `clients.api.ts:264-269` | `getClientById` non filtra per status |
+| `coach-client.ts:11-16` | `getCoachClientId` non filtra per status |
+| `client-bookings.api.ts:40` | Lato CLIENT - corretto richiedere `active` |
+| `coach-client.ts:123` | `getClientCoachClientId` è lato CLIENT - corretto |
 
 ---
 
-### File 3: `src/features/packages/components/PackageSettingsForm.tsx`
+## Soluzione
 
-**Eliminare completamente il file** — sostituito da `ProductCatalogSettings` in Settings.tsx.
+### Parte 1: Costante Centralizzata (Prevenzione Futura)
 
----
+Creare un file di costanti per evitare hardcoding futuro.
 
-### File 4: `src/features/packages/api/packages.api.ts`
+**Nuovo file**: `src/lib/constants/coach-client-statuses.ts`
 
-#### 4.1 — Rimuovere `getPackageSettings()` (righe 205-259)
-
-Eliminare l'intera funzione deprecata.
-
-#### 4.2 — Rimuovere `updatePackageSettings()` (righe 265-311)
-
-Eliminare l'intera funzione deprecata.
-
----
-
-### File 5: `src/features/packages/types.ts`
-
-Rimuovere l'interfaccia `PackageSettings` se presente (verificare che non sia usata altrove).
-
----
-
-### File 6: `src/features/products/hooks/useProducts.ts`
-
-#### 6.1 — Rimuovere l'invalidazione legacy (righe 60-61)
-
-Da:
 ```typescript
-onSuccess: () => {
-  queryClient.invalidateQueries({ queryKey: ["products"] });
-  // Invalidate legacy package-settings cache for backward compatibility
-  queryClient.invalidateQueries({ queryKey: ["package-settings"] });
-},
+/**
+ * Status visibili lato coach per la gestione clienti.
+ * Include 'invited' per permettere la gestione di clienti
+ * che non hanno ancora accettato l'invito.
+ */
+export const COACH_MANAGEABLE_STATUSES = ['active', 'invited'] as const;
+
+export type CoachManageableStatus = typeof COACH_MANAGEABLE_STATUSES[number];
 ```
 
-A:
+### Parte 2: Fix Frontend
+
+**File 1**: `src/features/clients/hooks/useOnboardingState.ts` (riga 44)
+
 ```typescript
-onSuccess: () => {
-  queryClient.invalidateQueries({ queryKey: ["products"] });
-},
+// PRIMA
+.eq('status', 'active')
+
+// DOPO  
+.in('status', COACH_MANAGEABLE_STATUSES)
+```
+
+**File 2**: `src/features/dashboard/hooks/useDashboardStats.ts` (riga 31)
+
+```typescript
+// PRIMA
+.eq("status", "active")
+
+// DOPO
+.in("status", COACH_MANAGEABLE_STATUSES)
+```
+
+**File 3**: `src/stores/useClientStore.ts` (riga 70)
+
+```typescript
+// PRIMA
+.eq("status", "active")
+
+// DOPO
+.in("status", COACH_MANAGEABLE_STATUSES)
+```
+
+### Parte 3: Fix RLS Database
+
+Aggiornare le policy INSERT per includere `invited`:
+
+```sql
+-- 1. client_activities INSERT
+DROP POLICY IF EXISTS "Coaches can create activities for their clients" 
+  ON public.client_activities;
+  
+CREATE POLICY "Coaches can create activities for their clients"
+ON public.client_activities FOR INSERT
+WITH CHECK (
+  client_id IN (
+    SELECT cc.client_id FROM coach_clients cc
+    WHERE cc.coach_id = auth.uid() 
+    AND cc.status IN ('active', 'invited')
+  )
+);
+
+-- 2. client_tag_on_client INSERT
+DROP POLICY IF EXISTS "Coaches can add tags to their clients" 
+  ON public.client_tag_on_client;
+  
+CREATE POLICY "Coaches can add tags to their clients"
+ON public.client_tag_on_client FOR INSERT
+WITH CHECK (
+  client_id IN (
+    SELECT cc.client_id FROM coach_clients cc
+    WHERE cc.coach_id = auth.uid() 
+    AND cc.status IN ('active', 'invited')
+  )
+);
+
+-- 3. measurements INSERT
+DROP POLICY IF EXISTS "Coaches can create measurements for their clients" 
+  ON public.measurements;
+  
+CREATE POLICY "Coaches can create measurements for their clients"
+ON public.measurements FOR INSERT
+WITH CHECK (
+  client_id IN (
+    SELECT cc.client_id FROM coach_clients cc
+    WHERE cc.coach_id = auth.uid() 
+    AND cc.status IN ('active', 'invited')
+  )
+);
 ```
 
 ---
 
 ## Riepilogo Modifiche
 
-| File | Azione |
-|------|--------|
-| `EventEditorModal.tsx` | Migrare a `useActiveProducts()` |
-| `usePackageSettings.ts` | **Eliminare** |
-| `PackageSettingsForm.tsx` | **Eliminare** |
-| `packages.api.ts` | Rimuovere `getPackageSettings` e `updatePackageSettings` |
-| `types.ts` | Rimuovere `PackageSettings` interface |
-| `useProducts.ts` | Rimuovere invalidazione cache legacy |
+| Tipo | Risorsa | Azione |
+|------|---------|--------|
+| Nuovo file | `src/lib/constants/coach-client-statuses.ts` | Creare costante centralizzata |
+| Fix FE | `useOnboardingState.ts:44` | Usare `COACH_MANAGEABLE_STATUSES` |
+| Fix FE | `useDashboardStats.ts:31` | Usare `COACH_MANAGEABLE_STATUSES` |
+| Fix FE | `useClientStore.ts:70` | Usare `COACH_MANAGEABLE_STATUSES` |
+| Fix DB | `client_activities` RLS INSERT | Aggiungere `'invited'` |
+| Fix DB | `client_tag_on_client` RLS INSERT | Aggiungere `'invited'` |
+| Fix DB | `measurements` RLS INSERT | Aggiungere `'invited'` |
 
 ---
 
-## Vantaggi
+## Risultato Atteso
 
-1. **Fix immediato del bug**: il prezzo viene letto correttamente filtrando per `type: 'single_session'`
-2. **Una sola fonte di verità**: solo `["products"]` query key
-3. **Codice più pulito**: rimozione di ~200 righe di codice deprecato
-4. **Nessun rischio di regressione futura**: eliminata la dipendenza legacy
+Dopo l'implementazione:
+- ✅ Clienti `invited` visibili nella lista
+- ✅ Conteggio clienti corretto (non più 0)
+- ✅ Dashboard stats includono clienti invited
+- ✅ Navigazione al dettaglio cliente funzionante
+- ✅ Coach può creare attività, tag, misurazioni per clienti invited
+- ✅ Coach può già creare eventi, pacchetti, piani, sessioni (RLS già OK)
 
 ---
 
 ## Note Tecniche
 
-La migrazione è sicura perché:
-- `useActiveProducts()` già esiste e funziona
-- Filtra automaticamente per `is_active: true` e `is_visible: true`
-- L'ordine è per `sort_order`, quindi il prodotto `single_session` sarà sempre presente
-- Il fallback `?? 5000` garantisce un valore default se non esiste il prodotto
+### Perché NON Modificare `coach-client.ts:123`
+
+La funzione `getClientCoachClientId()` è usata **lato CLIENT** (dall'app cliente) per trovare la propria relazione con il coach. È corretto che richieda `status = 'active'` perché:
+- Un cliente `invited` non ha ancora accettato l'invito
+- Non dovrebbe poter accedere all'app cliente finché non completa la registrazione
+- Quando accetta l'invito, lo status diventa `active`
+
+### Perché NON Modificare `client-bookings.api.ts:40`
+
+Stesso ragionamento: è codice lato CLIENT che verifica la relazione del cliente con il suo coach.
