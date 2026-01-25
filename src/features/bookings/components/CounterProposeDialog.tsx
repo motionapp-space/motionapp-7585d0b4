@@ -224,23 +224,25 @@ export function CounterProposeDialog({
       <DialogContent className="max-w-[720px] w-[calc(100vw-32px)] max-h-[85vh] p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden">
         {/* HEADER (sticky) */}
         <div className="bg-background border-b px-6 py-4 shrink-0">
-          <DialogHeader className="space-y-2">
-            <DialogTitle className="text-lg font-semibold">
-              Proponi un nuovo orario
-            </DialogTitle>
-            <p className="text-sm text-muted-foreground">
-              Il cliente potrà accettare o rifiutare la tua proposta.
-            </p>
-            {originalStart && originalEnd && (
-              <div className="pt-1">
+          <DialogHeader className="space-y-1">
+            <div className="flex items-end justify-between gap-4">
+              <div className="space-y-1">
+                <DialogTitle className="text-lg font-semibold">
+                  Proponi un nuovo orario
+                </DialogTitle>
+                <p className="text-sm text-muted-foreground">
+                  Il cliente potrà accettare o rifiutare la tua proposta.
+                </p>
+              </div>
+              {originalStart && originalEnd && (
                 <Badge 
                   variant="outline" 
-                  className="px-3 py-1 text-sm font-normal rounded-full"
+                  className="px-3 py-1 text-sm font-normal rounded-full whitespace-nowrap shrink-0"
                 >
-                  Richiesta: {format(originalStart, "EEE d MMM", { locale: it })} · {format(originalStart, "HH:mm")}–{format(originalEnd, "HH:mm")}
+                  {format(originalStart, "EEE d MMM", { locale: it })} · {format(originalStart, "HH:mm")}–{format(originalEnd, "HH:mm")}
                 </Badge>
-              </div>
-            )}
+              )}
+            </div>
           </DialogHeader>
         </div>
 
