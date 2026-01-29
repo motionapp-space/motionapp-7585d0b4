@@ -1,56 +1,40 @@
 
-# Piano di Correzione: Conteggio Serie Eventi
+# Piano di Correzione: Errore 404 su `cancel_series_with_ledger`
 
 ## Problema Identificato
 
-Il sistema non mostra l'opzione "Elimina solo questo" vs "Elimina tutta la serie" perché la funzione `countFutureSeriesEvents` restituisce **0 eventi** invece di 6.
+La chiamata RPC a `cancel_series_with_ledger` restituisce **404 Not Found** perché esistono **due versioni** della funzione nel database con firme diverse:
 
-### Causa Tecnica
+| Versione | Parametri |
+|----------|-----------|
+| **Vecchia** | `(p_series_id, p_actor, p_now)` |
+| **Nuova** | `(p_series_id, p_actor, p_now, p_only_future)` |
 
-La query in `src/features/events/api/events.api.ts` (linea 267):
-
-```typescript
-.not('session_status', 'in', '("canceled","done")')
-```
-
-Questa sintassi **non gestisce correttamente i valori NULL**. Nel database, tutti i 6 eventi della serie hanno `session_status = NULL`, e in SQL il confronto con NULL usando `NOT IN` restituisce sempre FALSE.
-
-**Query attuale (restituisce 0):**
-```sql
-WHERE session_status NOT IN ('canceled', 'done')
-```
-
-**Query corretta (restituisce 6):**
-```sql
-WHERE (session_status IS NULL OR session_status NOT IN ('canceled', 'done'))
-```
+PostgREST non riesce a determinare quale funzione invocare quando viene passato il parametro `p_only_future`, causando un errore 404.
 
 ## Soluzione
 
-### File da Modificare
-`src/features/events/api/events.api.ts`
+Rimuovere la vecchia versione della funzione per eliminare l'ambiguità nell'overload.
 
-### Modifica
-Sostituire la riga 267:
-```typescript
-// PRIMA (non gestisce NULL)
-.not('session_status', 'in', '("canceled","done")')
+### Migrazione SQL da eseguire
 
-// DOPO (gestisce NULL correttamente)
-.or('session_status.is.null,session_status.not.in.("canceled","done")')
+```sql
+-- Drop della vecchia funzione (senza p_only_future)
+DROP FUNCTION IF EXISTS public.cancel_series_with_ledger(uuid, text, timestamp with time zone);
 ```
 
-## Impatto
+Questo lascerà solo la versione nuova con `p_only_future`, che è quella effettivamente utilizzata dal codice frontend.
 
-Con questa correzione:
-1. La query restituirà correttamente il numero di eventi futuri della serie
-2. L'AlertDialog mostrerà le opzioni radio "Solo questo evento" / "Tutti i X appuntamenti futuri"
-3. Il coach potrà scegliere se eliminare solo l'evento selezionato o l'intera serie
+## Verifica Post-Migrazione
 
-## Test Raccomandato
+1. Creare una serie di appuntamenti ricorrenti
+2. Aprire un evento della serie e cliccare "Elimina"
+3. Verificare che appaia il dialog con le due opzioni (solo questo / tutta la serie)
+4. Selezionare "Tutta la serie" e confermare
+5. Verificare che tutti gli eventi futuri vengano cancellati
 
-Dopo l'implementazione:
-1. Aprire un evento che fa parte di una serie ricorrente
-2. Cliccare "Elimina"
-3. Verificare che appaiano le due opzioni radio
-4. Verificare che il conteggio degli eventi futuri sia corretto
+## Note Tecniche
+
+- Il codice in `useDeleteSeries.ts` chiama già correttamente la funzione con tutti e 4 i parametri
+- La funzione nuova ha `p_only_future DEFAULT true` quindi funziona anche se non viene passato esplicitamente
+- Non sono necessarie modifiche al codice frontend
