@@ -5,7 +5,7 @@ import { parseISO, format } from "date-fns";
 import { useTopbar } from "@/contexts/TopbarContext";
 import { Calendar as CalendarIcon, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
-import { useDeleteEvent } from "@/features/events/hooks/useDeleteEvent";
+import { useCancelEvent } from "@/features/events/hooks/useCancelEvent";
 import { useDeleteSeries } from "@/features/events/hooks/useDeleteSeries";
 import { useQuery } from "@tanstack/react-query";
 import { countFutureSeriesEvents } from "@/features/events/api/events.api";
@@ -67,7 +67,7 @@ const Calendar = () => {
   } | null>(null);
   const [deleteScope, setDeleteScope] = useState<'single' | 'series'>('single');
 
-  const deleteEvent = useDeleteEvent();
+  const cancelEvent = useCancelEvent();
   const deleteSeries = useDeleteSeries();
   
   // Query per contare eventi futuri della serie (solo se c'è series_id)
@@ -176,7 +176,10 @@ const Calendar = () => {
       if (deleteScope === 'series' && deleteConfirmation.seriesId) {
         await deleteSeries.mutateAsync(deleteConfirmation.seriesId);
       } else {
-        await deleteEvent.mutateAsync(deleteConfirmation.eventId);
+        await cancelEvent.mutateAsync({ 
+          eventId: deleteConfirmation.eventId,
+          isCoachCancelling: true 
+        });
       }
     } finally {
       setDeleteConfirmation(null);
@@ -409,10 +412,10 @@ const Calendar = () => {
             <AlertDialogCancel>Annulla</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleConfirmDelete}
-              disabled={deleteEvent.isPending || deleteSeries.isPending || isLoadingSeriesCount}
+              disabled={cancelEvent.isPending || deleteSeries.isPending || isLoadingSeriesCount}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {(deleteEvent.isPending || deleteSeries.isPending) 
+              {(cancelEvent.isPending || deleteSeries.isPending) 
                 ? "Eliminazione..." 
                 : deleteScope === 'series' 
                   ? `Elimina ${futureSeriesCount} eventi`

@@ -15,12 +15,16 @@ describe("No dangerous cancel paths (anti-regression)", () => {
     expect(file).not.toContain('session_status: "canceled"');
   });
 
-  it("client-bookings.api should call cancel_event_with_ledger RPC", () => {
+  it("client-bookings.api should delegate to client-appointment-actions edge function", () => {
     const file = readFile("src/features/client-bookings/api/client-bookings.api.ts");
     
-    // Should contain RPC call for cancel
-    expect(file).toContain("cancel_event_with_ledger");
-    expect(file).toContain("p_actor: 'client'");
+    // Should call edge function for actions, not direct RPC
+    expect(file).toContain("client-appointment-actions");
+    expect(file).toContain("supabase.functions.invoke");
+    
+    // Should NOT contain direct cancel_event_with_ledger RPC call
+    // (delegated to edge function for proper snapshot handling)
+    expect(file).not.toContain("supabase.rpc('cancel_event_with_ledger");
   });
 
   it("EventEditorModal should not use useDeleteEvent hook", () => {
@@ -40,23 +44,52 @@ describe("No dangerous cancel paths (anti-regression)", () => {
     expect(file).toContain("p_actor: 'coach'");
   });
 
-  it("cancelAppointment function should use RPC, not direct update", () => {
+  it("Calendar.tsx should not use useDeleteEvent hook", () => {
+    const file = readFile("src/pages/Calendar.tsx");
+    
+    // Should NOT import or use useDeleteEvent
+    expect(file).not.toContain("useDeleteEvent");
+    expect(file).not.toContain("deleteEvent.mutate");
+    expect(file).not.toContain("deleteEvent.mutateAsync");
+  });
+
+  it("Calendar.tsx should use useCancelEvent hook", () => {
+    const file = readFile("src/pages/Calendar.tsx");
+    
+    // Should import useCancelEvent
+    expect(file).toContain("useCancelEvent");
+    expect(file).toContain("cancelEvent.mutateAsync");
+  });
+
+  it("useCancelEvent hook should use cancel_event_with_ledger RPC, not deleteEvent", () => {
+    const file = readFile("src/features/events/hooks/useCancelEvent.ts");
+    
+    // Should contain RPC call
+    expect(file).toContain("cancel_event_with_ledger");
+    expect(file).toContain("p_actor:");
+    expect(file).toContain("p_event_id:");
+    
+    // Should NOT call physical delete
+    expect(file).not.toContain("await deleteEvent(");
+  });
+
+  it("cancelAppointment function should use edge function", () => {
     const file = readFile("src/features/client-bookings/api/client-bookings.api.ts");
     
-    // Find the cancelAppointment function and verify it uses RPC
+    // Find the cancelAppointment function and verify it uses edge function
     const cancelFnMatch = file.match(/export async function cancelAppointment[\s\S]*?^}/m);
     
     if (cancelFnMatch) {
       const cancelFn = cancelFnMatch[0];
-      expect(cancelFn).toContain("supabase.rpc");
-      expect(cancelFn).toContain("cancel_event_with_ledger");
-      // Should NOT contain direct from().update()
-      expect(cancelFn).not.toContain('.from("events")');
-      expect(cancelFn).not.toContain(".from('events')");
+      expect(cancelFn).toContain("supabase.functions.invoke");
+      expect(cancelFn).toContain("client-appointment-actions");
+      expect(cancelFn).toContain("cancel_appointment");
+      // Should NOT contain direct RPC call (delegated to edge function)
+      expect(cancelFn).not.toContain("supabase.rpc");
     }
   });
 
-  it("rejectChangeProposal uses RPC before resetting proposal fields", () => {
+  it("rejectChangeProposal uses edge function", () => {
     const file = readFile("src/features/client-bookings/api/client-bookings.api.ts");
     
     // Find the rejectChangeProposal function
@@ -64,16 +97,11 @@ describe("No dangerous cancel paths (anti-regression)", () => {
     
     if (rejectFnMatch) {
       const rejectFn = rejectFnMatch[0];
-      // Should call RPC
-      expect(rejectFn).toContain("cancel_event_with_ledger");
-      // Should have proposal reset (best-effort)
-      expect(rejectFn).toContain("proposed_start_at: null");
-      expect(rejectFn).toContain("proposed_end_at: null");
-      expect(rejectFn).toContain("proposal_status: null");
-      // RPC should come before proposal reset (check order by position)
-      const rpcPos = rejectFn.indexOf("cancel_event_with_ledger");
-      const resetPos = rejectFn.indexOf("proposed_start_at: null");
-      expect(rpcPos).toBeLessThan(resetPos);
+      expect(rejectFn).toContain("supabase.functions.invoke");
+      expect(rejectFn).toContain("client-appointment-actions");
+      expect(rejectFn).toContain("reject_change_proposal");
+      // Should NOT contain direct RPC call
+      expect(rejectFn).not.toContain("supabase.rpc");
     }
   });
 });
