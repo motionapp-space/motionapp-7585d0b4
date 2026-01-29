@@ -2116,20 +2116,15 @@ export type Database = {
       }
     }
     Functions: {
-      cancel_event_with_ledger:
-        | {
-            Args: { p_actor: string; p_event_id: string; p_now?: string }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_actor: string
-              p_client_user_id?: string
-              p_event_id: string
-              p_now?: string
-            }
-            Returns: Json
-          }
+      cancel_event_with_ledger: {
+        Args: {
+          p_actor: string
+          p_client_user_id?: string
+          p_event_id: string
+          p_now?: string
+        }
+        Returns: Json
+      }
       cancel_series_with_ledger: {
         Args: {
           p_actor: string
