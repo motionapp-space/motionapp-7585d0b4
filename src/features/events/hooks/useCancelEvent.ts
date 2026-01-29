@@ -1,95 +1,122 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { deleteEvent, getEventById } from "../api/events.api";
-import { findPackageForEvent, handleEventCancel } from "@/features/packages/api/calendar-integration.api";
-import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { logClientActivity } from "@/features/clients/api/activities.api";
 import { getCoachClientDetails } from "@/lib/coach-client";
+import { getEventById } from "../api/events.api";
+import { buildEventSnapshot, queueBookingEmailWithSnapshot } from "@/lib/email-snapshot";
 
 interface CancelEventInput {
   eventId: string;
   isCoachCancelling?: boolean;
 }
 
+interface CancelEventResult {
+  event_id: string;
+  canceled: boolean;
+  already_canceled?: boolean;
+  economic_type: string;
+  is_late: boolean;
+  ledger_action: string;
+  order_status?: string;
+}
+
+/**
+ * Hook per cancellare un singolo evento tramite RPC cancel_event_with_ledger.
+ * Garantisce coerenza con la cancellazione di serie (soft delete + gestione ledger).
+ */
 export function useCancelEvent() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ eventId, isCoachCancelling = true }: CancelEventInput) => {
-      // Get event details before deletion
+      // 1. Get event details BEFORE cancellation for email snapshot
       const event = await getEventById(eventId);
       
-      // Get client_id from coach_client relationship
-      const { client_id: clientId } = await getCoachClientDetails(event.coach_client_id);
-      
-      // Try to find associated package
-      const packageId = await findPackageForEvent(eventId);
-      
-      if (!packageId) {
-        // Historic event without package - just delete
-        await deleteEvent(eventId);
-        return { event, clientId, penaltyApplied: false, hasPackage: false };
+      // 2. Build email snapshot BEFORE cancellation
+      let snapshot;
+      try {
+        snapshot = await buildEventSnapshot(event, 'coach');
+      } catch (e) {
+        console.warn("Could not build event snapshot for email:", e);
       }
-
-      // Handle cancellation with package credit management
-      let penaltyApplied = false;
       
-      if (isCoachCancelling) {
-        // Professional always releases credit without penalty
-        const result = await handleEventCancel(
-          eventId,
-          packageId,
-          event.start_at,
-          { forceFree: true }
-        );
-        penaltyApplied = result.penaltyApplied;
-      } else {
-        // Client cancellation - apply lock window logic
-        const result = await handleEventCancel(
-          eventId,
-          packageId,
-          event.start_at
-        );
-        penaltyApplied = result.penaltyApplied;
-      }
-
-      // Delete the event
-      await deleteEvent(eventId);
+      // 3. Call RPC for soft-delete with ledger management
+      const now = new Date().toISOString();
+      const actor = isCoachCancelling ? 'coach' : 'client';
       
-      return { event, clientId, penaltyApplied, hasPackage: true };
+      const { data, error } = await supabase.rpc('cancel_event_with_ledger', {
+        p_event_id: eventId,
+        p_actor: actor,
+        p_now: now,
+      });
+      
+      if (error) throw error;
+      
+      const result = data as unknown as CancelEventResult;
+      
+      // 4. Return event info for onSuccess
+      return { 
+        event, 
+        result, 
+        snapshot,
+        isCoachCancelling 
+      };
     },
-    onSuccess: ({ event, clientId, penaltyApplied, hasPackage }) => {
-      // Log activity
-      if (clientId) {
-        logClientActivity(
-          clientId,
-          "EVENT_DELETED",
-          `Appuntamento cancellato: ${event.title || "Sessione"}`
-        );
+    onSuccess: async ({ event, result, snapshot, isCoachCancelling }) => {
+      // Get client_id for activity log
+      try {
+        const { client_id: clientId } = await getCoachClientDetails(event.coach_client_id);
+        
+        if (clientId) {
+          await logClientActivity(
+            clientId,
+            "EVENT_DELETED",
+            `Appuntamento cancellato: ${event.title || "Sessione"}`
+          );
+        }
+      } catch (error) {
+        console.warn("Could not log client activity:", error);
       }
 
       // Invalidate queries
       queryClient.invalidateQueries({ queryKey: ["events"], exact: false });
-      
-      // Solo se ha package, invalida package-related queries
-      if (hasPackage) {
-        queryClient.invalidateQueries({ queryKey: ["packages"], exact: false });
-        queryClient.invalidateQueries({ queryKey: ["package-ledger"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["packages"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["package-ledger"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["series-count"], exact: false });
+
+      // Show appropriate toast based on result
+      if (result.already_canceled) {
+        toast.info("Evento già cancellato");
+        return;
       }
 
-      // Show appropriate toast
-      if (!hasPackage) {
-        toast.info("Appuntamento cancellato", {
-          description: "Evento storico senza gestione crediti"
-        });
-      } else if (penaltyApplied) {
+      if (result.ledger_action === 'consume') {
         toast.warning("Cancellazione tardiva", {
           description: "1 credito consumato per cancellazione entro lock window"
         });
-      } else {
+      } else if (result.ledger_action === 'release') {
         toast.success("Appuntamento cancellato", {
           description: "Credito restituito al cliente"
         });
+      } else {
+        toast.success("Appuntamento cancellato");
+      }
+
+      // Queue email notification to client
+      if (snapshot && isCoachCancelling) {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            await queueBookingEmailWithSnapshot({
+              type: 'appointment_cancelled',
+              actorUserId: user.id,
+              snapshot,
+            });
+          }
+        } catch (e) {
+          console.warn('Failed to queue cancellation email:', e);
+        }
       }
     },
     onError: (error: Error) => {
