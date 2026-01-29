@@ -264,7 +264,7 @@ export async function countFutureSeriesEvents(
     .from('events')
     .select('id', { count: 'exact', head: true })
     .eq('series_id', seriesId)
-    .not('session_status', 'in', '("canceled","done")')
+    .or('session_status.is.null,session_status.not.in.("canceled","done")')
     .gte('start_at', now);
   
   if (error) throw error;
