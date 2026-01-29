@@ -1,120 +1,76 @@
 
-# Piano di Correzione: "FOR UPDATE is not allowed with aggregate functions"
+# Analisi Funzionalità Gestione Serie Ricorrenti
 
-## Problema Identificato
+## Criticità Identificate
 
-La funzione `cancel_series_with_ledger` contiene una query che combina:
-- `array_agg(id ORDER BY start_at)` - funzione aggregata
-- `FOR UPDATE` - lock per update
+### 1. CRITICA: Incoerenza tra Delete Singolo e Delete Serie
 
-PostgreSQL non permette questa combinazione perché il lock `FOR UPDATE` richiede righe individuali, mentre le funzioni aggregate restituiscono un singolo risultato.
+| Operazione | Metodo | Impatto |
+|------------|--------|---------|
+| **Elimina singolo** | `deleteEvent()` → DELETE fisica | Rimuove record dal DB |
+| **Elimina serie** | `cancel_series_with_ledger` RPC → Soft delete | Imposta `session_status='canceled'` |
 
-## Soluzione
+**Problema**: Quando si elimina un singolo evento di una serie, viene eseguita una DELETE fisica tramite `useDeleteEvent`, mentre la cancellazione dell'intera serie usa `cancel_series_with_ledger` che fa soft-delete. Questo crea incoerenza nei dati e può causare:
+- Conteggio errato degli eventi futuri della serie (`countFutureSeriesEvents`)
+- Perdita di audit trail per eventi singoli
+- Nessuna gestione del ledger per singoli eventi eliminati
 
-Separare la query in due step:
-1. Prima fare il lock sulle righe con `FOR UPDATE` senza aggregazione
-2. Poi aggregare gli ID già selezionati
+### 2. Test Anti-Regression Incompleto
 
-### Migrazione SQL
+Il test `no-dangerous-cancel-paths.test.ts` verifica che `EventEditorModal` non usi `useDeleteEvent`, ma:
+- `Calendar.tsx` importa e usa `useDeleteEvent` per eliminazioni singole (linea 70)
+- Questo bypassa la logica ledger e soft-delete
 
-```sql
-CREATE OR REPLACE FUNCTION public.cancel_series_with_ledger(
-  p_series_id uuid,
-  p_actor text,
-  p_now timestamptz DEFAULT now(),
-  p_only_future boolean DEFAULT true
-)
-RETURNS jsonb
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path TO 'public'
-AS $$
-DECLARE
-  v_event_id uuid;
-  v_event_ids uuid[];
-  v_results jsonb[] := '{}';
-  v_result jsonb;
-  v_count int := 0;
-  v_errors int := 0;
-  v_coach_client_id uuid;
-BEGIN
-  -- Prima ottieni coach_client_id
-  SELECT coach_client_id INTO v_coach_client_id
-  FROM events 
-  WHERE series_id = p_series_id 
-  LIMIT 1;
+### 3. Gestione Economica Mancante per Delete Singolo
 
-  -- Lock le righe PRIMA, poi aggrega gli ID
-  -- Step 1: Lock le righe interessate
-  PERFORM id FROM events 
-  WHERE series_id = p_series_id 
-    AND (session_status IS NULL OR session_status NOT IN ('canceled', 'done'))
-    AND (NOT p_only_future OR start_at >= p_now)
-  FOR UPDATE;
-  
-  -- Step 2: Ora aggrega gli ID (senza FOR UPDATE)
-  SELECT array_agg(id ORDER BY start_at)
-  INTO v_event_ids
-  FROM events 
-  WHERE series_id = p_series_id 
-    AND (session_status IS NULL OR session_status NOT IN ('canceled', 'done'))
-    AND (NOT p_only_future OR start_at >= p_now);
-  
-  IF v_event_ids IS NULL OR array_length(v_event_ids, 1) = 0 THEN
-    RETURN jsonb_build_object(
-      'series_id', p_series_id, 
-      'canceled_count', 0, 
-      'message', 'No cancellable events in series'
-    );
-  END IF;
+`useDeleteEvent` esegue:
+1. Costruisce snapshot per email
+2. DELETE fisica
+3. Log attività
+4. Queue email
 
-  -- Auth check
-  IF p_actor = 'coach' THEN
-    PERFORM check_coach_owns_coach_client(v_coach_client_id);
-  ELSIF p_actor = 'client' THEN
-    PERFORM check_client_owns_coach_client(v_coach_client_id);
-  ELSE
-    RAISE EXCEPTION 'Invalid actor';
-  END IF;
+**NON** esegue:
+- Rilascio crediti pacchetto (HOLD_RELEASE)
+- Aggiornamento order_payment
+- Rispetto della finestra di cancellazione
 
-  -- Itera e cancella ogni evento
-  FOREACH v_event_id IN ARRAY v_event_ids
-  LOOP
-    BEGIN
-      v_result := cancel_event_with_ledger(v_event_id, p_actor, p_now);
-      v_results := array_append(v_results, v_result);
-      IF (v_result->>'canceled')::boolean IS TRUE OR (v_result->>'already_canceled')::boolean IS TRUE THEN
-        v_count := v_count + 1;
-      END IF;
-    EXCEPTION WHEN OTHERS THEN
-      v_errors := v_errors + 1;
-      v_results := array_append(v_results, jsonb_build_object(
-        'event_id', v_event_id,
-        'error', SQLERRM
-      ));
-    END;
-  END LOOP;
+### 4. Casi Edge Non Coperti
 
-  RETURN jsonb_build_object(
-    'series_id', p_series_id,
-    'canceled_count', v_count,
-    'errors_count', v_errors,
-    'total_events', array_length(v_event_ids, 1),
-    'results', to_jsonb(v_results)
-  );
-END;
-$$;
+| Caso | Stato |
+|------|-------|
+| Serie con mix di eventi cancellati/attivi | OK - filtrati correttamente |
+| Serie con eventi passati + futuri | OK - `p_only_future=true` |
+| Eliminazione ultimo evento della serie | Non testato - potrebbe lasciare serie "orfana" |
+| Serie creata senza lessonType (free) | Funziona ma senza gestione economica |
+
+## Soluzione Proposta
+
+### Fase 1: Unificare Delete Singolo con RPC
+
+Modificare `Calendar.tsx` per usare `cancel_event_with_ledger` anche per eliminazioni singole:
+
+```typescript
+// Invece di:
+await deleteEvent.mutateAsync(deleteConfirmation.eventId);
+
+// Usare:
+await supabase.rpc('cancel_event_with_ledger', {
+  p_event_id: deleteConfirmation.eventId,
+  p_actor: 'coach',
+  p_now: new Date().toISOString()
+});
 ```
 
-## Cosa cambia
+### Fase 2: Aggiornare Test Anti-Regression
 
-| Prima | Dopo |
-|-------|------|
-| Una query con `array_agg() + FOR UPDATE` | Due query separate |
-| Errore PostgreSQL | Lock corretto sulle righe |
+Aggiungere test che verifica che `Calendar.tsx` NON usi `deleteEvent` direttamente.
 
-## Verifica Post-Migrazione
+### Fase 3: Deprecare useDeleteEvent
 
-1. Aprire un evento ricorrente
-2. Cliccare "Elimina" e selezionare "Tutta la serie"
-3. Confermare e verificare che tutti gli eventi futuri vengano cancellati
+Rimuovere o marcare come deprecated `useDeleteEvent` per prevenire uso futuro.
+
+## Note Tecniche
+
+- Le migrazioni SQL eseguite hanno risolto l'errore 400 e l'errore `FOR UPDATE with aggregate`
+- La funzione `cancel_series_with_ledger` ora funziona correttamente
+- Il conteggio eventi futuri (`countFutureSeriesEvents`) gestisce correttamente NULL status
