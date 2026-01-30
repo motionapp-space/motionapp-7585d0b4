@@ -85,16 +85,42 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Semantic colors
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        // Ink scale (CSS variable references)
+        ink: {
+          900: "hsl(var(--ink-900))",
+          800: "hsl(var(--ink-800))",
+          700: "hsl(var(--ink-700))",
+          600: "hsl(var(--ink-600))",
+          500: "hsl(var(--ink-500))",
+          300: "hsl(var(--ink-300))",
+          200: "hsl(var(--ink-200))",
+        },
+        paper: {
+          0: "hsl(var(--paper-0))",
+          98: "hsl(var(--paper-98))",
+        },
+        // Sidebar (NO sidebar-primary — use primary directly)
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
-          primary: "hsl(var(--sidebar-primary))",
-          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
+          muted: "hsl(var(--sidebar-muted))",
+          hover: "hsl(var(--sidebar-hover))",
+          active: "hsl(var(--sidebar-active))",
           accent: "hsl(var(--sidebar-accent))",
           "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // Client colors for calendar
         "client-1": "hsl(var(--client-1))",
         "client-2": "hsl(var(--client-2))",
         "client-3": "hsl(var(--client-3))",

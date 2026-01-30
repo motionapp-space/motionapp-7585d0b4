@@ -637,8 +637,8 @@ const Clients = () => {
                       className={cn(
                         "h-9 px-3 transition-colors",
                         advancedOpen
-                          ? "bg-green-600 text-white hover:bg-green-700 hover:text-white"
-                          : "text-muted-foreground hover:bg-green-600 hover:text-white"
+                          ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                          : "text-muted-foreground hover:bg-primary hover:text-primary-foreground"
                       )}
                     >
                       Filtri avanzati
@@ -1212,8 +1212,8 @@ const Clients = () => {
                       className={cn(
                         "h-9 px-3 transition-colors",
                         advancedOpen
-                          ? "bg-green-600 text-white hover:bg-green-700 hover:text-white"
-                          : "text-muted-foreground hover:bg-green-600 hover:text-white"
+                          ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                          : "text-muted-foreground hover:bg-primary hover:text-primary-foreground"
                       )}
                     >
                       Filtri avanzati

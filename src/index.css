@@ -62,48 +62,83 @@ All colors MUST be HSL.
 
     /* Interaction */
     --hit-min: 44px;
-    --background: 0 0% 99%;
-    --foreground: 220 15% 20%;
+
+    /* === MONOCHROME NEUTRALS === */
+    --ink-900: 220 15% 8%;
+    --ink-800: 220 12% 14%;
+    --ink-700: 220 10% 22%;
+    --ink-600: 220 9% 32%;
+    --ink-500: 220 8% 45%;
+    --ink-300: 220 8% 70%;
+    --ink-200: 220 8% 92%;
+    --paper-0: 0 0% 100%;
+    --paper-98: 0 0% 98%;
+
+    /* === CORE SURFACES === */
+    --background: 0 0% 98%;
+    --foreground: 220 15% 8%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 15% 20%;
+    --card-foreground: 220 15% 8%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 15% 20%;
+    --popover-foreground: 220 15% 8%;
 
-    --primary: 220 70% 45%;
+    /* === PRIMARY (BRAND ACCENT - BLUE) === */
+    --primary: 220 55% 46%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 220 70% 40%;
+    --primary-hover: 220 55% 40%;
 
-    --secondary: 220 15% 96%;
-    --secondary-foreground: 220 15% 20%;
+    /* === SECONDARY === */
+    --secondary: 0 0% 100%;
+    --secondary-foreground: 220 15% 8%;
 
-    --muted: 220 14% 94%;
-    --muted-foreground: 220 9% 46%;
+    /* === MUTED === */
+    --muted: 220 8% 92%;
+    --muted-foreground: 220 8% 45%;
 
-    --accent: 150 60% 45%;
-    --accent-foreground: 0 0% 100%;
-    --accent-hover: 150 60% 40%;
+    /* === ACCENT (NOW NEUTRAL, NOT GREEN) === */
+    --accent: 220 8% 92%;
+    --accent-foreground: 220 15% 8%;
+    --accent-hover: 220 8% 88%;
 
-    --destructive: 0 72% 51%;
+    /* === DESTRUCTIVE === */
+    --destructive: 0 65% 48%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 90%;
-    --input: 220 15% 90%;
-    --ring: 220 70% 45%;
+    /* === SEMANTIC: SUCCESS === */
+    --success: 145 45% 42%;
+    --success-foreground: 0 0% 100%;
+    --success-ring: 145 45% 42%;
+
+    /* === SEMANTIC: WARNING === */
+    --warning: 38 90% 50%;
+    --warning-foreground: 0 0% 100%;
+    --warning-ring: 38 90% 50%;
+
+    /* === SEMANTIC: DANGER RING === */
+    --danger-ring: 0 65% 48%;
+
+    /* === BORDERS & INPUTS === */
+    --border: 220 8% 92%;
+    --input: 220 8% 92%;
+    --ring: 220 55% 46%;
 
     --radius: 1rem;
 
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 220 15% 20%;
-    --sidebar-primary: 220 70% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 15% 96%;
-    --sidebar-accent-foreground: 220 15% 20%;
-    --sidebar-border: 220 15% 90%;
-    --sidebar-ring: 220 70% 45%;
+    /* === SIDEBAR (DARK IN LIGHT MODE) === */
+    --sidebar-background: 220 15% 8%;
+    --sidebar-foreground: 0 0% 92%;
+    --sidebar-muted: 220 8% 70%;
+    --sidebar-hover: 220 12% 14%;
+    --sidebar-active: 220 10% 22%;
+    --sidebar-border: 220 12% 14%;
+    --sidebar-accent: 220 10% 22%;
+    --sidebar-accent-foreground: 0 0% 92%;
+    /* FIX #2: Match brand ring */
+    --sidebar-ring: 220 55% 46%;
 
-    /* Client colors for calendar events */
+    /* === CLIENT COLORS (CALENDAR EVENTS) === */
     --client-1: 226 80% 52%;
     --client-2: 171 65% 38%;
     --client-3: 16 78% 50%;
@@ -114,47 +149,79 @@ All colors MUST be HSL.
     --client-8: 120 45% 40%;
   }
 
+  /* FIX #1: .dark INSIDE @layer base */
   .dark {
-    --background: 220 20% 10%;
-    --foreground: 0 0% 95%;
+    /* Monochrome Neutrals */
+    --ink-900: 220 15% 8%;
+    --ink-800: 220 12% 14%;
+    --ink-700: 220 10% 22%;
+    --ink-600: 220 9% 32%;
+    --ink-500: 220 8% 45%;
+    --ink-300: 220 8% 70%;
+    --ink-200: 220 8% 92%;
+    --paper-0: 0 0% 100%;
+    --paper-98: 0 0% 98%;
 
-    --card: 220 20% 12%;
-    --card-foreground: 0 0% 95%;
+    /* Semantic Colors (brighter for dark mode) */
+    --success: 145 45% 52%;
+    --success-foreground: 0 0% 100%;
+    --success-ring: 145 45% 52%;
 
-    --popover: 220 20% 12%;
-    --popover-foreground: 0 0% 95%;
+    --warning: 38 85% 58%;
+    --warning-foreground: 0 0% 100%;
+    --warning-ring: 38 85% 58%;
 
-    --primary: 220 70% 50%;
+    --danger-ring: 0 65% 55%;
+
+    /* Core surfaces */
+    --background: 220 15% 8%;
+    --foreground: 0 0% 92%;
+
+    --card: 220 12% 14%;
+    --card-foreground: 0 0% 92%;
+
+    --popover: 220 12% 14%;
+    --popover-foreground: 0 0% 92%;
+
+    /* Primary */
+    --primary: 220 55% 54%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 220 70% 45%;
+    --primary-hover: 220 55% 48%;
 
-    --secondary: 220 20% 18%;
-    --secondary-foreground: 0 0% 95%;
+    /* Secondary */
+    --secondary: 220 10% 22%;
+    --secondary-foreground: 0 0% 92%;
 
-    --muted: 220 20% 16%;
-    --muted-foreground: 220 10% 72%;
+    /* Muted (different from card for hover visibility) */
+    --muted: 220 12% 18%;
+    --muted-foreground: 220 8% 70%;
 
-    --accent: 150 60% 50%;
-    --accent-foreground: 0 0% 100%;
-    --accent-hover: 150 60% 45%;
+    /* Accent (neutral) */
+    --accent: 220 10% 22%;
+    --accent-foreground: 0 0% 92%;
+    --accent-hover: 220 10% 26%;
 
-    --destructive: 0 72% 51%;
+    /* Destructive */
+    --destructive: 0 65% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 20% 20%;
-    --input: 220 20% 20%;
-    --ring: 220 70% 50%;
+    /* Borders & inputs */
+    --border: 220 10% 22%;
+    --input: 220 10% 22%;
+    --ring: 220 55% 54%;
 
-    --sidebar-background: 220 20% 12%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 220 70% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 20% 18%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 220 20% 20%;
-    --sidebar-ring: 220 70% 50%;
+    /* Sidebar */
+    --sidebar-background: 220 15% 6%;
+    --sidebar-foreground: 0 0% 92%;
+    --sidebar-muted: 220 8% 70%;
+    --sidebar-hover: 220 12% 14%;
+    --sidebar-active: 220 10% 22%;
+    --sidebar-border: 220 10% 22%;
+    --sidebar-accent: 220 10% 22%;
+    --sidebar-accent-foreground: 0 0% 92%;
+    --sidebar-ring: 220 55% 54%;
 
-    /* Client colors for calendar events (dark mode) */
+    /* Client colors (brighter for dark mode) */
     --client-1: 226 75% 60%;
     --client-2: 171 60% 45%;
     --client-3: 16 75% 58%;
@@ -187,9 +254,7 @@ All colors MUST be HSL.
       --fs-h6: 24px;
     }
   }
-}
 
-@layer base {
   html {
     font-size: 100%;
   }
@@ -245,12 +310,21 @@ All colors MUST be HSL.
     line-height: var(--lh-normal);
     @apply font-semibold;
   }
+}
 
-  /* Accessibility */
-  :focus-visible {
-    outline: 2px solid currentColor;
-    outline-offset: 2px;
-  }
+/* Global focus-visible ring (box-shadow mimics ring-2 ring-offset-2) */
+:where(a, button, input, select, textarea, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px hsl(var(--background)),
+    0 0 0 4px hsl(var(--ring));
+}
+
+/* Sidebar-specific focus (dark background needs matching offset) */
+[data-sidebar="root"] :where(a, button, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+  box-shadow:
+    0 0 0 2px hsl(var(--sidebar-background)),
+    0 0 0 4px hsl(var(--sidebar-ring));
 }
 
 @layer utilities {

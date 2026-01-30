@@ -30,8 +30,9 @@ export function AppSidebar({ collapsed = false, onNavClick }: AppSidebarProps) {
   return (
     <TooltipProvider delayDuration={0}>
       <aside
+        data-sidebar="root"
         className={cn(
-          "sticky top-0 h-screen shrink-0 bg-muted flex flex-col transition-[width] duration-200 ease-in-out",
+          "sticky top-0 h-screen shrink-0 bg-sidebar text-sidebar-foreground flex flex-col transition-[width] duration-200 ease-in-out",
           collapsed ? "w-16" : "w-[232px]"
         )}
         data-testid="sidebar"
@@ -71,23 +72,23 @@ export function AppSidebar({ collapsed = false, onNavClick }: AppSidebarProps) {
                 onClick={onNavClick}
                 className={cn(
                   "group relative flex items-center rounded-full transition-[background-color,color] duration-[120ms] ease-out",
-                  "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/30 focus-visible:bg-foreground/14 focus-visible:text-foreground",
+                  "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/30 focus-visible:bg-sidebar-hover focus-visible:text-sidebar-foreground",
                   collapsed
                     ? "justify-center px-2 py-2.5"
                     : "gap-3 px-3 py-2.5",
                   active
-                    ? "bg-primary/15 text-primary font-semibold hover:bg-primary/18"
-                    : "text-muted-foreground hover:bg-foreground/14 hover:text-foreground"
+                    ? "bg-sidebar-active text-sidebar-foreground font-semibold"
+                    : "text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-foreground"
                 )}
                 aria-current={active ? "page" : undefined}
                 aria-label={item.label}
               >
                 {/* Active indicator bar */}
                 {active && !collapsed && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[28px] rounded-full bg-primary/80" />
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-[28px] bg-primary" />
                 )}
                 {active && collapsed && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 rounded-full bg-primary/80" />
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-6 bg-primary" />
                 )}
                 <Icon className="h-5 w-5 shrink-0" />
                 {!collapsed && (

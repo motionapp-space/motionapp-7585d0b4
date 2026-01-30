@@ -1,5 +1,5 @@
 import { formatTimeRange } from "@/features/events/utils/calendar-utils";
-import { colorClassesForClient } from "@/utils/clientColor";
+import { getClientColorIndex } from "@/utils/clientColor";
 import { cn } from "@/lib/utils";
 import { Clock } from "lucide-react";
 import type { BookingRequestWithClient } from "../types";
@@ -20,15 +20,17 @@ export function BookingRequestCard({
   onClick,
   positioning,
 }: BookingRequestCardProps) {
-  const { bg, text, ring } = colorClassesForClient(request.coach_client_id);
+  // Single source of truth for color index with defensive fallback
+  const colorIndex = request.coach_client_id 
+    ? getClientColorIndex(request.coach_client_id) 
+    : 1;
 
   const baseClasses = cn(
     "rounded-md p-2 cursor-pointer transition-all",
-    "border-2 border-dashed opacity-60",
-    "hover:opacity-80 hover:scale-[1.02]",
-    bg,
-    text,
-    ring
+    "bg-muted/60 text-foreground border-l-4 border-dashed",
+    // Scale only in list view, not in dense calendar
+    !positioning && "hover:bg-muted hover:scale-[1.02]",
+    positioning && "hover:bg-muted"
   );
 
   const style: React.CSSProperties = positioning
@@ -38,8 +40,11 @@ export function BookingRequestCard({
         height: Math.max(24, positioning.height),
         left: `${positioning.leftPercent * 100}%`,
         width: `${positioning.widthPercent * 100}%`,
+        borderLeftColor: `hsl(var(--client-${colorIndex}))`,
       }
-    : {};
+    : {
+        borderLeftColor: `hsl(var(--client-${colorIndex}))`,
+      };
 
   return (
     <div
@@ -50,12 +55,12 @@ export function BookingRequestCard({
       aria-label={`Pending booking request: ${request.client_name}`}
     >
       <div className="flex items-center gap-1 mb-1">
-        <Clock className="h-4 w-4" />
+        <Clock className="h-4 w-4 text-muted-foreground" />
         <span className="font-semibold truncate text-xs">In attesa</span>
       </div>
-      <div className="text-[11px] opacity-90 truncate">{request.client_name}</div>
+      <div className="text-[11px] text-muted-foreground truncate">{request.client_name}</div>
       {!positioning && (
-        <div className="text-[11px] opacity-90 mt-1">
+        <div className="text-[11px] text-muted-foreground mt-1">
           {formatTimeRange(
             request.requested_start_at,
             request.requested_end_at,

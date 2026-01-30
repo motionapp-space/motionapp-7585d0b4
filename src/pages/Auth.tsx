@@ -300,8 +300,8 @@ const Auth = () => {
                   <div className="flex items-center gap-2 text-sm mt-1">
                     {passwordsMatch ? (
                       <>
-                        <Check className="h-3.5 w-3.5 text-green-600" />
-                        <span className="text-green-600">Le password corrispondono</span>
+                        <Check className="h-3.5 w-3.5 text-success" />
+                        <span className="text-success">Le password corrispondono</span>
                       </>
                     ) : (
                       <>
