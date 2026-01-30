@@ -19,7 +19,7 @@ function getStatusBadge(status: ClientAppointmentView["status"]) {
     case "REQUESTED":
       return <Badge variant="secondary" className="bg-amber-500/10 text-amber-700 border-amber-200">In attesa</Badge>;
     case "CHANGE_PROPOSED":
-      return <Badge variant="secondary" className="bg-blue-500/10 text-blue-700 border-blue-200">Proposta modifica</Badge>;
+      return <Badge variant="secondary" className="bg-muted text-muted-foreground border-border">Proposta modifica</Badge>;
     default:
       return null;
   }

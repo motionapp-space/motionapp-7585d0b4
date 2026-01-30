@@ -64,40 +64,41 @@ All colors MUST be HSL.
     --hit-min: 44px;
 
     /* === MONOCHROME NEUTRALS === */
-    --ink-900: 220 15% 8%;
-    --ink-800: 220 12% 14%;
-    --ink-700: 220 10% 22%;
-    --ink-600: 220 9% 32%;
-    --ink-500: 220 8% 45%;
-    --ink-300: 220 8% 70%;
-    --ink-200: 220 8% 92%;
+    --ink-950: 220 15% 6%;   /* headings, strongest */
+    --ink-900: 220 15% 8%;   /* body text */
+    --ink-800: 220 12% 14%;  /* DEPRECATED */
+    --ink-700: 220 10% 30%;  /* secondary text */
+    --ink-600: 220 9% 32%;   /* DEPRECATED */
+    --ink-500: 220 8% 48%;   /* meta/muted text */
+    --ink-300: 220 8% 70%;   /* DEPRECATED */
+    --ink-200: 220 8% 92%;   /* DEPRECATED */
     --paper-0: 0 0% 100%;
     --paper-98: 0 0% 98%;
 
-    /* === CORE SURFACES === */
-    --background: 0 0% 98%;
-    --foreground: 220 15% 8%;
+    /* === CORE SURFACES — Unified Soft Editorial White === */
+    --background: 220 14% 98%;
+    --foreground: 220 15% 6%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 220 15% 8%;
+    --card: 220 14% 98%;
+    --card-foreground: 220 15% 6%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 15% 8%;
+    --popover: 220 14% 98%;
+    --popover-foreground: 220 15% 6%;
 
-    /* === PRIMARY (BRAND ACCENT - BLUE) === */
-    --primary: 220 55% 46%;
+    /* === PRIMARY (INK-BASED, NOT BLUE) === */
+    --primary: 220 15% 10%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 220 55% 40%;
+    --primary-hover: 220 15% 6%;
 
     /* === SECONDARY === */
     --secondary: 0 0% 100%;
     --secondary-foreground: 220 15% 8%;
 
     /* === MUTED === */
-    --muted: 220 8% 92%;
-    --muted-foreground: 220 8% 45%;
+    --muted: 220 12% 96%;
+    --muted-foreground: 220 8% 48%;
 
-    /* === ACCENT (NOW NEUTRAL, NOT GREEN) === */
+    /* === ACCENT (NEUTRAL) === */
     --accent: 220 8% 92%;
     --accent-foreground: 220 15% 8%;
     --accent-hover: 220 8% 88%;
@@ -120,23 +121,22 @@ All colors MUST be HSL.
     --danger-ring: 0 65% 48%;
 
     /* === BORDERS & INPUTS === */
-    --border: 220 8% 92%;
+    --border: 220 14% 90%;
     --input: 220 8% 92%;
-    --ring: 220 55% 46%;
+    --ring: 220 15% 10%;
 
     --radius: 1rem;
 
     /* === SIDEBAR (DARK IN LIGHT MODE) === */
-    --sidebar-background: 220 15% 8%;
-    --sidebar-foreground: 0 0% 92%;
-    --sidebar-muted: 220 8% 70%;
-    --sidebar-hover: 220 12% 14%;
-    --sidebar-active: 220 10% 22%;
-    --sidebar-border: 220 12% 14%;
+    --sidebar-background: 220 15% 6%;
+    --sidebar-foreground: 0 0% 94%;
+    --sidebar-muted: 220 10% 65%;
+    --sidebar-hover: 220 12% 12%;
+    --sidebar-active: 220 12% 16%;
+    --sidebar-border: 220 12% 12%;
     --sidebar-accent: 220 10% 22%;
     --sidebar-accent-foreground: 0 0% 92%;
-    /* FIX #2: Match brand ring */
-    --sidebar-ring: 220 55% 46%;
+    --sidebar-ring: 220 15% 10%;
 
     /* === CLIENT COLORS (CALENDAR EVENTS) === */
     --client-1: 226 80% 52%;
@@ -152,11 +152,12 @@ All colors MUST be HSL.
   /* FIX #1: .dark INSIDE @layer base */
   .dark {
     /* Monochrome Neutrals */
+    --ink-950: 220 15% 6%;
     --ink-900: 220 15% 8%;
     --ink-800: 220 12% 14%;
-    --ink-700: 220 10% 22%;
+    --ink-700: 220 10% 30%;
     --ink-600: 220 9% 32%;
-    --ink-500: 220 8% 45%;
+    --ink-500: 220 8% 48%;
     --ink-300: 220 8% 70%;
     --ink-200: 220 8% 92%;
     --paper-0: 0 0% 100%;
@@ -183,10 +184,10 @@ All colors MUST be HSL.
     --popover: 220 12% 14%;
     --popover-foreground: 0 0% 92%;
 
-    /* Primary */
-    --primary: 220 55% 54%;
+    /* Primary — Ink-based, lighter for dark mode visibility */
+    --primary: 220 15% 20%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 220 55% 48%;
+    --primary-hover: 220 15% 16%;
 
     /* Secondary */
     --secondary: 220 10% 22%;
@@ -208,7 +209,7 @@ All colors MUST be HSL.
     /* Borders & inputs */
     --border: 220 10% 22%;
     --input: 220 10% 22%;
-    --ring: 220 55% 54%;
+    --ring: 220 15% 20%;
 
     /* Sidebar */
     --sidebar-background: 220 15% 6%;
@@ -219,7 +220,7 @@ All colors MUST be HSL.
     --sidebar-border: 220 10% 22%;
     --sidebar-accent: 220 10% 22%;
     --sidebar-accent-foreground: 0 0% 92%;
-    --sidebar-ring: 220 55% 54%;
+    --sidebar-ring: 220 15% 20%;
 
     /* Client colors (brighter for dark mode) */
     --client-1: 226 75% 60%;
@@ -320,11 +321,11 @@ All colors MUST be HSL.
     0 0 0 4px hsl(var(--ring));
 }
 
-/* Sidebar-specific focus (dark background needs matching offset) */
+/* Sidebar-specific focus — 5px spread for visibility on dark */
 [data-sidebar="root"] :where(a, button, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
   box-shadow:
     0 0 0 2px hsl(var(--sidebar-background)),
-    0 0 0 4px hsl(var(--sidebar-ring));
+    0 0 0 5px hsl(var(--sidebar-ring));
 }
 
 @layer utilities {

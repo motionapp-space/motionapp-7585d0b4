@@ -1710,9 +1710,9 @@ export function EventEditorModal({
 
             {/* Hint per modalità creazione */}
             {viewMode === 'new' && (
-              <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 mt-4">
-                <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-blue-700 dark:text-blue-300">
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-muted border border-border mt-4">
+                <Info className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-muted-foreground">
                   Dopo la creazione potrai avviare la sessione dall'evento in Agenda.
                 </p>
               </div>

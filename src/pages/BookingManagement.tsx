@@ -118,9 +118,9 @@ const BookingManagement = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Da approvare</p>
-                    <p className="text-3xl font-bold text-blue-600">{pendingRequests.length}</p>
+                    <p className="text-3xl font-bold text-foreground">{pendingRequests.length}</p>
                   </div>
-                  <Clock className="h-8 w-8 text-blue-600 opacity-50" />
+                  <Clock className="h-8 w-8 text-muted-foreground opacity-50" />
                 </div>
               </CardContent>
             </Card>

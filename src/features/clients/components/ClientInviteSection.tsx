@@ -120,7 +120,7 @@ export function ClientInviteSection({ clientId, email, hasUserAccount }: ClientI
       case "expired":
         return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Scaduto</Badge>;
       case "revoked":
-        return <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">Revocato</Badge>;
+        return <Badge variant="outline" className="bg-muted text-muted-foreground border-border">Revocato</Badge>;
       default:
         return null;
     }

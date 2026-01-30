@@ -96,13 +96,14 @@ export default {
         },
         // Ink scale (CSS variable references)
         ink: {
+          950: "hsl(var(--ink-950))",  // NEW: strongest for headings
           900: "hsl(var(--ink-900))",
-          800: "hsl(var(--ink-800))",
+          800: "hsl(var(--ink-800))",  // DEPRECATED
           700: "hsl(var(--ink-700))",
-          600: "hsl(var(--ink-600))",
+          600: "hsl(var(--ink-600))",  // DEPRECATED
           500: "hsl(var(--ink-500))",
-          300: "hsl(var(--ink-300))",
-          200: "hsl(var(--ink-200))",
+          300: "hsl(var(--ink-300))",  // DEPRECATED
+          200: "hsl(var(--ink-200))",  // DEPRECATED
         },
         paper: {
           0: "hsl(var(--paper-0))",
