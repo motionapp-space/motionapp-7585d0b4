@@ -1,316 +1,145 @@
 
 
-# Motion Project Color Guideline Refactor (v3 - Final + 6 Fixes)
-## Monochrome + Minimal Semantic Design System
+# Motion — New Color Palette Implementation (AUTHORITATIVE)
+## Global Color Palette Replacement with Execution Mandate
 
 ---
 
-## Final Fixes Applied
+## EXECUTION DIRECTIVE (READ FIRST)
 
-| Fix | Issue | Resolution |
-|-----|-------|------------|
-| 1 | `.dark` outside `@layer base` | Both `:root` and `.dark` inside `@layer base {}` |
-| 2 | `--sidebar-ring` brighter than brand | Set to `220 55% 46%` in `:root` (match `--primary`) |
-| 3 | Badge semantic text contrast risk | Use `text-foreground` with `[&>svg]:text-*` for icons |
-| 4 | EventCard duplicated hashing | Use `getClientColorIndex()` single source of truth |
-| 5 | Clients.tsx green buttons | Strict rule: `bg-primary` for actions, badge for states |
-| 6 | WCAG risk items | Documented with fallback knobs if checks fail |
+This task is a **GLOBAL COLOR PALETTE REPLACEMENT**.
+
+The palette defined in this document is the **new canonical source of truth**.
+
+### This means:
+
+- **Every existing UI surface, component, page, and state** must visually update to the new palette — even if it already "looks fine"
+- **Do NOT preserve existing colors** for safety, familiarity, or consistency unless they are explicitly listed as semantic colors (success / warning / destructive)
+- If a component currently uses blue, pure white, gray/slate tokens, or visually "floats" due to shadow or mismatch → **it must be updated, not grandfathered**
+- If there is any conflict between existing styles, previous refactors, or local component overrides → **THIS DOCUMENT WINS**
+- Visual regressions are acceptable temporarily if required to remove blue, remove pure white, or enforce ink-based hierarchy — they must be fixed before completion
+- **Success is defined by visual convergence to the new editorial palette**, not by minimal diffs or low-risk changes
+
+---
+
+## Codebase Audit Results
+
+### Files Requiring Changes
+
+| Category | File | Issues Found |
+|----------|------|--------------|
+| **bg-white** | `src/pages/Clients.tsx:1115` | `bg-white/95 backdrop-blur-sm shadow-sm` |
+| **bg-white** | `src/features/events/components/WeekView.tsx:147` | `bg-white flex shrink-0 shadow-sm` |
+| **bg-white** | `src/features/events/components/DayView.tsx:124` | `bg-white flex shrink-0 shadow-sm` |
+| **blue-*** | `src/components/plan-editor/GroupCard.tsx:130` | `bg-blue-500/10 text-blue-600` |
+| **blue-*** | `src/features/client-bookings/components/NextAppointmentCard.tsx:22` | `bg-blue-500/10 text-blue-700 border-blue-200` |
+| **blue-*** | `src/features/client-bookings/components/ChangeProposalBanner.tsx:31-34` | `border-blue-200 bg-blue-50/50 text-blue-*` |
+| **blue-*** | `src/features/events/components/EventEditorModal.tsx:1713-1716` | `bg-blue-50 border-blue-200 text-blue-*` |
+| **blue-*** | `src/pages/BookingManagement.tsx:121-123` | `text-blue-600` |
+| **blue-*** | `src/features/bookings/components/BookingRequestDrawer.tsx:128` | `text-blue-600 border-blue-600` |
+| **blue-*** | `src/features/events/components/ClientViewBanner.tsx:11-12` | `border-blue-200 bg-blue-50/50 text-blue-600` |
+| **blue-*** | `src/pages/ClientPlanEditor.tsx:748-760` | `bg-blue-50 border-blue-200 text-blue-*` |
+| **gray-*** | `src/features/clients/components/ClientInviteSection.tsx:123` | `bg-gray-50 text-gray-700 border-gray-200` |
+| **slate-*** | `src/features/events/components/WeekView.tsx:149,188,217,249` | `border-slate-200/*` |
+| **slate-*** | `src/features/events/components/DayView.tsx:126,155,205` | `border-slate-200/*` |
+
+**Total violations found: 15+ files with 50+ individual instances**
 
 ---
 
 ## Phase 1: CSS Design Tokens (`src/index.css`)
 
-### Complete Structure (Both Blocks Inside `@layer base`)
+### 1.1 Canvas & Surfaces — Unified Soft Editorial White
+
+Replace current values. All three MUST be identical:
 
 ```css
-@layer base {
-  :root {
-    /* Typography — font family */
-    --font-sans: "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+/* CURRENT (WRONG) */
+--background: 0 0% 98%;
+--card: 0 0% 100%;
+--popover: 0 0% 100%;
 
-    /* Typography base */
-    --fs-xs: 12px;
-    --fs-sm: 14px;
-    --fs-base: 16px;
-    --fs-md: 18px;
-    --fs-lg: 20px;
-    --fs-h6: 24px;
-    --fs-h5: 28px;
-    --fs-h4: 32px;
-    --fs-h3: 36px;
-    --fs-h2: 40px;
-    --fs-h1: 44px;
+/* NEW (CORRECT) — Soft editorial white */
+--background: 220 14% 98%;
+--card: 220 14% 98%;
+--popover: 220 14% 98%;
 
-    --lh-tight: 1.2;
-    --lh-snug: 1.3;
-    --lh-normal: 1.5;
-    --lh-relaxed: 1.6;
-
-    /* Spacing (4-point system) */
-    --space-0: 0px;
-    --space-2: 2px;
-    --space-4: 4px;
-    --space-8: 8px;
-    --space-12: 12px;
-    --space-16: 16px;
-    --space-20: 20px;
-    --space-24: 24px;
-    --space-28: 28px;
-    --space-32: 32px;
-    --space-40: 40px;
-    --space-48: 48px;
-    --space-56: 56px;
-    --space-64: 64px;
-    --space-80: 80px;
-    --space-96: 96px;
-
-    /* Radius & shadows */
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
-    --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
-    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-    --shadow-lg: 0 8px 24px rgba(0,0,0,0.10);
-
-    /* Containers */
-    --container-2xl: 1440px;
-
-    /* Interaction */
-    --hit-min: 44px;
-
-    /* === MONOCHROME NEUTRALS === */
-    --ink-900: 220 15% 8%;
-    --ink-800: 220 12% 14%;
-    --ink-700: 220 10% 22%;
-    --ink-600: 220 9% 32%;
-    --ink-500: 220 8% 45%;
-    --ink-300: 220 8% 70%;
-    --ink-200: 220 8% 92%;
-    --paper-0: 0 0% 100%;
-    --paper-98: 0 0% 98%;
-
-    /* === CORE SURFACES === */
-    --background: 0 0% 98%;
-    --foreground: 220 15% 8%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 220 15% 8%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 15% 8%;
-
-    /* === PRIMARY (BRAND ACCENT - BLUE) === */
-    --primary: 220 55% 46%;
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 220 55% 40%;
-
-    /* === SECONDARY === */
-    --secondary: 0 0% 100%;
-    --secondary-foreground: 220 15% 8%;
-
-    /* === MUTED === */
-    --muted: 220 8% 92%;
-    --muted-foreground: 220 8% 45%;
-
-    /* === ACCENT (NOW NEUTRAL, NOT GREEN) === */
-    --accent: 220 8% 92%;
-    --accent-foreground: 220 15% 8%;
-    --accent-hover: 220 8% 88%;
-
-    /* === DESTRUCTIVE === */
-    --destructive: 0 65% 48%;
-    --destructive-foreground: 0 0% 100%;
-
-    /* === SEMANTIC: SUCCESS === */
-    --success: 145 45% 42%;
-    --success-foreground: 0 0% 100%;
-    --success-ring: 145 45% 42%;
-
-    /* === SEMANTIC: WARNING === */
-    --warning: 38 90% 50%;
-    --warning-foreground: 0 0% 100%;
-    --warning-ring: 38 90% 50%;
-
-    /* === SEMANTIC: DANGER RING === */
-    --danger-ring: 0 65% 48%;
-
-    /* === BORDERS & INPUTS === */
-    --border: 220 8% 92%;
-    --input: 220 8% 92%;
-    --ring: 220 55% 46%;
-
-    --radius: 1rem;
-
-    /* === SIDEBAR (DARK IN LIGHT MODE) === */
-    --sidebar-background: 220 15% 8%;
-    --sidebar-foreground: 0 0% 92%;
-    --sidebar-muted: 220 8% 70%;
-    --sidebar-hover: 220 12% 14%;
-    --sidebar-active: 220 10% 22%;
-    --sidebar-border: 220 12% 14%;
-    --sidebar-accent: 220 10% 22%;
-    --sidebar-accent-foreground: 0 0% 92%;
-    /* FIX #2: Match brand ring (was 54%, now 46%) */
-    --sidebar-ring: 220 55% 46%;
-
-    /* === CLIENT COLORS (CALENDAR EVENTS) === */
-    --client-1: 226 80% 52%;
-    --client-2: 171 65% 38%;
-    --client-3: 16 78% 50%;
-    --client-4: 280 60% 55%;
-    --client-5: 197 70% 42%;
-    --client-6: 340 65% 50%;
-    --client-7: 40 85% 50%;
-    --client-8: 120 45% 40%;
-  }
-
-  /* FIX #1: .dark INSIDE @layer base */
-  .dark {
-    /* Monochrome Neutrals */
-    --ink-900: 220 15% 8%;
-    --ink-800: 220 12% 14%;
-    --ink-700: 220 10% 22%;
-    --ink-600: 220 9% 32%;
-    --ink-500: 220 8% 45%;
-    --ink-300: 220 8% 70%;
-    --ink-200: 220 8% 92%;
-    --paper-0: 0 0% 100%;
-    --paper-98: 0 0% 98%;
-
-    /* Semantic Colors (brighter for dark mode) */
-    --success: 145 45% 52%;
-    --success-foreground: 0 0% 100%;
-    --success-ring: 145 45% 52%;
-
-    --warning: 38 85% 58%;
-    --warning-foreground: 0 0% 100%;
-    --warning-ring: 38 85% 58%;
-
-    --danger-ring: 0 65% 55%;
-
-    /* Core surfaces */
-    --background: 220 15% 8%;
-    --foreground: 0 0% 92%;
-
-    --card: 220 12% 14%;
-    --card-foreground: 0 0% 92%;
-
-    --popover: 220 12% 14%;
-    --popover-foreground: 0 0% 92%;
-
-    /* Primary */
-    --primary: 220 55% 54%;
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 220 55% 48%;
-
-    /* Secondary */
-    --secondary: 220 10% 22%;
-    --secondary-foreground: 0 0% 92%;
-
-    /* Muted (different from card for hover visibility) */
-    --muted: 220 12% 18%;
-    --muted-foreground: 220 8% 70%;
-
-    /* Accent (neutral) */
-    --accent: 220 10% 22%;
-    --accent-foreground: 0 0% 92%;
-    --accent-hover: 220 10% 26%;
-
-    /* Destructive */
-    --destructive: 0 65% 55%;
-    --destructive-foreground: 0 0% 100%;
-
-    /* Borders & inputs */
-    --border: 220 10% 22%;
-    --input: 220 10% 22%;
-    --ring: 220 55% 54%;
-
-    /* Sidebar */
-    --sidebar-background: 220 15% 6%;
-    --sidebar-foreground: 0 0% 92%;
-    --sidebar-muted: 220 8% 70%;
-    --sidebar-hover: 220 12% 14%;
-    --sidebar-active: 220 10% 22%;
-    --sidebar-border: 220 10% 22%;
-    --sidebar-accent: 220 10% 22%;
-    --sidebar-accent-foreground: 0 0% 92%;
-    --sidebar-ring: 220 55% 54%;
-
-    /* Client colors (brighter for dark mode) */
-    --client-1: 226 75% 60%;
-    --client-2: 171 60% 45%;
-    --client-3: 16 75% 58%;
-    --client-4: 280 55% 62%;
-    --client-5: 197 65% 50%;
-    --client-6: 340 60% 58%;
-    --client-7: 40 80% 58%;
-    --client-8: 120 40% 48%;
-  }
-
-  /* Responsive type tweaks */
-  @media (max-width: 639px) {
-    :root {
-      --fs-h1: 32px;
-      --fs-h2: 28px;
-      --fs-h3: 24px;
-      --fs-h4: 22px;
-      --fs-h5: 20px;
-      --fs-h6: 18px;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    :root {
-      --fs-h1: 44px;
-      --fs-h2: 40px;
-      --fs-h3: 36px;
-      --fs-h4: 32px;
-      --fs-h5: 28px;
-      --fs-h6: 24px;
-    }
-  }
-}
+/* Foregrounds updated for cool tone */
+--foreground: 220 15% 6%;
+--card-foreground: 220 15% 6%;
+--popover-foreground: 220 15% 6%;
 ```
 
-### Focus-Visible CSS (After `@layer base`)
+### 1.2 Ink Scale — Reduced to 4 Levels
+
+Replace the 7-level scale with a focused 4-level system:
 
 ```css
-@layer base {
-  /* ... tokens above ... */
+/* NEW: Primary ink levels */
+--ink-950: 220 15% 6%;   /* headings, strongest */
+--ink-900: 220 15% 8%;   /* body text */
+--ink-700: 220 10% 30%;  /* secondary text */
+--ink-500: 220 8% 48%;   /* meta/muted text */
 
-  html {
-    font-size: 100%;
-  }
+/* DEPRECATED: Keep defined for backwards compat, DO NOT USE */
+--ink-800: 220 12% 14%;
+--ink-600: 220 9% 32%;
+--ink-300: 220 8% 70%;
+--ink-200: 220 8% 92%;
+```
 
-  * {
-    @apply border-border;
-  }
+### 1.3 Primary Color — Ink-Based (REMOVE BLUE COMPLETELY)
 
-  body {
-    @apply bg-background text-foreground;
-    font-family: var(--font-sans);
-    font-size: var(--fs-base);
-    line-height: var(--lh-normal);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
+```css
+/* CURRENT (WRONG) — Blue */
+--primary: 220 55% 46%;
+--primary-hover: 220 55% 40%;
+--ring: 220 55% 46%;
 
-  /* Headings remain unchanged */
-}
+/* NEW (CORRECT) — Ink-based */
+--primary: 220 15% 10%;
+--primary-foreground: 0 0% 100%;
+--primary-hover: 220 15% 6%;
+--ring: 220 15% 10%;
+```
 
-/* Global focus-visible ring (box-shadow mimics ring-2 ring-offset-2) */
-:where(a, button, input, select, textarea, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
-  outline: none;
-  box-shadow:
-    0 0 0 2px hsl(var(--background)),
-    0 0 0 4px hsl(var(--ring));
-}
+**Result**: Primary buttons become dark/black with white text. Focus rings become dark.
 
-/* Sidebar-specific focus (dark background needs matching offset) */
+### 1.4 Muted & Borders — Refined
+
+```css
+/* NEW */
+--muted: 220 12% 96%;
+--border: 220 14% 90%;
+```
+
+### 1.5 Sidebar — Enhanced with Ink Ring
+
+```css
+--sidebar-background: 220 15% 6%;
+--sidebar-foreground: 0 0% 94%;
+--sidebar-muted: 220 10% 65%;
+--sidebar-hover: 220 12% 12%;
+--sidebar-active: 220 12% 16%;
+--sidebar-border: 220 12% 12%;
+--sidebar-ring: 220 15% 10%;
+```
+
+### 1.6 Dark Mode Updates
+
+Apply corresponding changes to `.dark` block:
+- Primary: `220 15% 20%` (lighter for dark mode visibility)
+- Primary-hover: `220 15% 16%`
+- Ring: `220 15% 20%`
+
+### 1.7 Focus Ring — Wider on Sidebar
+
+```css
+/* Sidebar focus — 5px spread for visibility on dark */
 [data-sidebar="root"] :where(a, button, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
   box-shadow:
     0 0 0 2px hsl(var(--sidebar-background)),
-    0 0 0 4px hsl(var(--sidebar-ring));
+    0 0 0 5px hsl(var(--sidebar-ring));
 }
 ```
 
@@ -318,453 +147,224 @@
 
 ## Phase 2: Tailwind Configuration (`tailwind.config.ts`)
 
-### Colors Object Update
+### 2.1 Add ink-950 to Scale
 
 ```typescript
-colors: {
-  border: "hsl(var(--border))",
-  input: "hsl(var(--input))",
-  ring: "hsl(var(--ring))",
-  background: "hsl(var(--background))",
-  foreground: "hsl(var(--foreground))",
-  primary: {
-    DEFAULT: "hsl(var(--primary))",
-    foreground: "hsl(var(--primary-foreground))",
-    hover: "hsl(var(--primary-hover))",
-  },
-  secondary: {
-    DEFAULT: "hsl(var(--secondary))",
-    foreground: "hsl(var(--secondary-foreground))",
-  },
-  destructive: {
-    DEFAULT: "hsl(var(--destructive))",
-    foreground: "hsl(var(--destructive-foreground))",
-  },
-  muted: {
-    DEFAULT: "hsl(var(--muted))",
-    foreground: "hsl(var(--muted-foreground))",
-  },
-  accent: {
-    DEFAULT: "hsl(var(--accent))",
-    foreground: "hsl(var(--accent-foreground))",
-    hover: "hsl(var(--accent-hover))",
-  },
-  popover: {
-    DEFAULT: "hsl(var(--popover))",
-    foreground: "hsl(var(--popover-foreground))",
-  },
-  card: {
-    DEFAULT: "hsl(var(--card))",
-    foreground: "hsl(var(--card-foreground))",
-  },
-  // NEW: Semantic colors
-  success: {
-    DEFAULT: "hsl(var(--success))",
-    foreground: "hsl(var(--success-foreground))",
-  },
-  warning: {
-    DEFAULT: "hsl(var(--warning))",
-    foreground: "hsl(var(--warning-foreground))",
-  },
-  // NEW: Ink scale (CSS variable references)
-  ink: {
-    900: "hsl(var(--ink-900))",
-    800: "hsl(var(--ink-800))",
-    700: "hsl(var(--ink-700))",
-    600: "hsl(var(--ink-600))",
-    500: "hsl(var(--ink-500))",
-    300: "hsl(var(--ink-300))",
-    200: "hsl(var(--ink-200))",
-  },
-  paper: {
-    0: "hsl(var(--paper-0))",
-    98: "hsl(var(--paper-98))",
-  },
-  // Sidebar (NO sidebar-primary — use primary directly)
-  sidebar: {
-    DEFAULT: "hsl(var(--sidebar-background))",
-    foreground: "hsl(var(--sidebar-foreground))",
-    muted: "hsl(var(--sidebar-muted))",
-    hover: "hsl(var(--sidebar-hover))",
-    active: "hsl(var(--sidebar-active))",
-    accent: "hsl(var(--sidebar-accent))",
-    "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
-    border: "hsl(var(--sidebar-border))",
-    ring: "hsl(var(--sidebar-ring))",
-  },
-  // Client colors (keep existing)
-  "client-1": "hsl(var(--client-1))",
-  "client-2": "hsl(var(--client-2))",
-  "client-3": "hsl(var(--client-3))",
-  "client-4": "hsl(var(--client-4))",
-  "client-5": "hsl(var(--client-5))",
-  "client-6": "hsl(var(--client-6))",
-  "client-7": "hsl(var(--client-7))",
-  "client-8": "hsl(var(--client-8))",
-}
+ink: {
+  950: "hsl(var(--ink-950))",  // NEW
+  900: "hsl(var(--ink-900))",
+  800: "hsl(var(--ink-800))",  // DEPRECATED
+  700: "hsl(var(--ink-700))",
+  600: "hsl(var(--ink-600))",  // DEPRECATED
+  500: "hsl(var(--ink-500))",
+  300: "hsl(var(--ink-300))",  // DEPRECATED
+  200: "hsl(var(--ink-200))",  // DEPRECATED
+},
 ```
 
 ---
 
-## Phase 3: Component Updates
+## Phase 3: Sticky Components (CRITICAL FIX)
 
-### 3.1 Client Color Utility (`src/utils/clientColor.ts`)
+### 3.1 Required Pattern
 
-Add `getClientColorIndex` function (single source of truth for hashing):
-
-```typescript
-/**
- * Returns a color index (1-8) for a given client ID.
- * Used for CSS variable reference: --client-${index}
- */
-export function getClientColorIndex(clientId: string): number {
-  let h = 0;
-  for (let i = 0; i < clientId.length; i++) {
-    h = (h * 31 + clientId.charCodeAt(i)) >>> 0;
-  }
-  return (h % 8) + 1;
-}
-
-const TOKENS = [
-  { bg: "bg-client-1", text: "text-white", ring: "ring-client-1", dot: "bg-client-1", border: "border-l-client-1" },
-  { bg: "bg-client-2", text: "text-white", ring: "ring-client-2", dot: "bg-client-2", border: "border-l-client-2" },
-  { bg: "bg-client-3", text: "text-white", ring: "ring-client-3", dot: "bg-client-3", border: "border-l-client-3" },
-  { bg: "bg-client-4", text: "text-white", ring: "ring-client-4", dot: "bg-client-4", border: "border-l-client-4" },
-  { bg: "bg-client-5", text: "text-white", ring: "ring-client-5", dot: "bg-client-5", border: "border-l-client-5" },
-  { bg: "bg-client-6", text: "text-white", ring: "ring-client-6", dot: "bg-client-6", border: "border-l-client-6" },
-  { bg: "bg-client-7", text: "text-white", ring: "ring-client-7", dot: "bg-client-7", border: "border-l-client-7" },
-  { bg: "bg-client-8", text: "text-white", ring: "ring-client-8", dot: "bg-client-8", border: "border-l-client-8" },
-];
-
-export function colorClassesForClient(clientId: string) {
-  const index = getClientColorIndex(clientId) - 1; // 0-based for array
-  return TOKENS[index];
-}
+**Table headers / inline sticky** — NO blur, NO shadow:
+```tsx
+className="sticky top-0 z-30 bg-background border-b border-border"
 ```
 
-### 3.2 AppSidebar (`src/components/AppSidebar.tsx`)
+**Global overlays** — blur OK, NO shadow:
+```tsx
+className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border"
+```
 
+### 3.2 Exact File Changes
+
+**`src/pages/Clients.tsx` line 1115:**
 ```diff
-// Add data-sidebar attribute for focus selector
-<aside
-+ data-sidebar="root"
-  className={cn(
--   "sticky top-0 h-screen shrink-0 bg-muted flex flex-col...",
-+   "sticky top-0 h-screen shrink-0 bg-sidebar text-sidebar-foreground flex flex-col...",
-    collapsed ? "w-16" : "w-[232px]"
-  )}
->
-
-// Active/inactive states use sidebar tokens
-- active
--   ? "bg-primary/15 text-primary font-semibold hover:bg-primary/18"
--   : "text-muted-foreground hover:bg-foreground/14 hover:text-foreground"
-+ active
-+   ? "bg-sidebar-active text-sidebar-foreground font-semibold"
-+   : "text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-foreground"
-
-// Active indicator uses --primary directly (bg-primary)
-- <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[28px] rounded-full bg-primary/80" />
-+ <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-[28px] bg-primary" />
+- <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm shadow-sm">
++ <div className="sticky top-0 z-30 bg-background border-b border-border">
 ```
 
-### 3.3 Badge Component (`src/components/ui/badge.tsx`)
-
-FIX #3: Use `text-foreground` with icon-only coloring for better contrast:
-
-```typescript
-const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-  {
-    variants: {
-      variant: {
-        // DEFAULT is monochrome
-        default: "border-transparent bg-muted text-foreground",
-        secondary: "border-transparent bg-muted text-foreground",
-        outline: "border-border text-foreground bg-transparent",
-        destructive: "bg-destructive/10 text-foreground border border-destructive/40 [&>svg]:text-destructive",
-        // FIX #3: Semantic variants use neutral text, icon gets color
-        success: "bg-success/10 text-foreground border border-success/40 [&>svg]:text-success",
-        warning: "bg-warning/12 text-foreground border border-warning/40 [&>svg]:text-warning",
-        danger: "bg-destructive/10 text-foreground border border-destructive/40 [&>svg]:text-destructive",
-        // Optional brand badge (use sparingly)
-        brand: "border-transparent bg-primary text-primary-foreground",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  },
-);
-```
-
-### 3.4 Alert Component (`src/components/ui/alert.tsx`)
-
-```typescript
-const alertVariants = cva(
-  "relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4",
-  {
-    variants: {
-      variant: {
-        default: "bg-card text-foreground border-border [&>svg]:text-foreground",
-        destructive: "border-l-4 border-l-destructive bg-destructive/10 text-foreground [&>svg]:text-destructive dark:bg-destructive/14",
-        success: "border-l-4 border-l-success bg-success/10 text-foreground [&>svg]:text-success dark:bg-success/16",
-        warning: "border-l-4 border-l-warning bg-warning/12 text-foreground [&>svg]:text-warning dark:bg-warning/18",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  }
-);
-```
-
-### 3.5 Sonner Toast (`src/components/ui/sonner.tsx`)
-
-```typescript
-toastOptions={{
-  classNames: {
-    toast:
-      "group toast group-[.toaster]:font-sans group-[.toaster]:bg-card group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg group-[.toaster]:rounded-md",
-    description: "group-[.toast]:text-muted-foreground group-[.toast]:text-sm",
-    actionButton:
-      "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground group-[.toast]:rounded-sm group-[.toast]:font-medium",
-    cancelButton:
-      "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground group-[.toast]:rounded-sm",
-    success:
-      "group-[.toaster]:border-l-4 group-[.toaster]:border-l-success group-[.toaster]:bg-success/10 dark:group-[.toaster]:bg-success/16",
-    error:
-      "group-[.toaster]:border-l-4 group-[.toaster]:border-l-destructive group-[.toaster]:bg-destructive/10 dark:group-[.toaster]:bg-destructive/14",
-    info:
-      "group-[.toaster]:border-l-4 group-[.toaster]:border-l-primary group-[.toaster]:bg-primary/10",
-    warning:
-      "group-[.toaster]:border-l-4 group-[.toaster]:border-l-warning group-[.toaster]:bg-warning/12 dark:group-[.toaster]:bg-warning/18",
-  },
-}}
-```
-
-### 3.6 Button Component (`src/components/ui/button.tsx`)
-
+**`src/features/events/components/WeekView.tsx` line 147:**
 ```diff
-- outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-+ outline: "border border-input bg-background hover:bg-muted hover:text-foreground",
+- <div className="h-10 bg-white flex shrink-0 shadow-sm">
++ <div className="h-10 bg-background flex shrink-0 border-b border-border">
+```
 
-- ghost: "hover:bg-accent hover:text-accent-foreground",
-+ ghost: "hover:bg-muted hover:text-foreground",
+**`src/features/events/components/DayView.tsx` line 124:**
+```diff
+- <div className="h-10 bg-white flex shrink-0 shadow-sm">
++ <div className="h-10 bg-background flex shrink-0 border-b border-border">
 ```
 
 ---
 
-## Phase 4: Calendar Event Styling
+## Phase 4: Calendar Border Cleanup (slate → border)
 
-### 4.1 EventCard (`src/features/events/components/EventCard.tsx`)
+### 4.1 WeekView.tsx Changes
 
-FIX #4: Use `getClientColorIndex()` instead of duplicated hashing:
+| Line | Current | Replace With |
+|------|---------|--------------|
+| 149 | `border-r border-slate-200/40` | `border-r border-border/40` |
+| 188 | `border-r border-slate-200/40` | `border-r border-border/40` |
+| 217 | `border-r last:border-r-0 border-slate-200/40` | `border-r last:border-r-0 border-border/40` |
+| 249 | `border-t border-slate-200/80` | `border-t border-border/80` |
 
-```typescript
-import { formatTimeRange } from "../utils/calendar-utils";
-import { getClientColorIndex } from "@/utils/clientColor";
-import { cn } from "@/lib/utils";
-import type { EventWithClient } from "../types";
+### 4.2 DayView.tsx Changes
 
-interface EventCardProps {
-  event: EventWithClient;
-  onClick: () => void;
-  compact?: boolean;
-  positioning?: {
-    top: number;
-    height: number;
-    leftPercent: number;
-    widthPercent: number;
-  };
-}
+| Line | Current | Replace With |
+|------|---------|--------------|
+| 126 | `border-r border-slate-200/40` | `border-r border-border/40` |
+| 155 | `border-r border-slate-200/40` | `border-r border-border/40` |
+| 205 | `border-t border-slate-200/80` | `border-t border-border/80` |
 
-export function EventCard({ event, onClick, compact = false, positioning }: EventCardProps) {
-  // FIX #4: Single source of truth for color index
-  const colorIndex = event.coach_client_id 
-    ? getClientColorIndex(event.coach_client_id) 
-    : 1;
+---
 
-  const baseClasses = cn(
-    "rounded-md p-2 cursor-pointer transition-all shadow-sm",
-    "bg-muted text-foreground border-l-4",
-    // Scale only in list view, not in dense calendar
-    !positioning && "hover:shadow-md hover:scale-[1.02]",
-    positioning && "hover:shadow-md",
-    compact && "text-xs py-1 px-2"
-  );
+## Phase 5: Blue Color Removal (MANDATORY)
 
-  const style: React.CSSProperties = positioning ? {
-    position: 'absolute',
-    top: positioning.top,
-    height: Math.max(24, positioning.height),
-    left: `${positioning.leftPercent * 100}%`,
-    width: `${positioning.widthPercent * 100}%`,
-    borderLeftColor: `hsl(var(--client-${colorIndex}))`,
-  } : {
-    borderLeftColor: `hsl(var(--client-${colorIndex}))`,
-  };
+### 5.1 Information Banners → Neutral Styling
 
-  return (
-    <div
-      onClick={onClick}
-      style={style}
-      className={baseClasses}
-      role="button"
-      aria-label={`${event.title}${event.client_name ? ` with ${event.client_name}` : ''}`}
-    >
-      <div className="font-semibold truncate text-xs">{event.title}</div>
-      <div className="text-[11px] text-muted-foreground truncate">{event.client_name}</div>
-      {!compact && !positioning && (
-        <div className="text-[11px] text-muted-foreground mt-1">
-          {formatTimeRange(event.start_at, event.end_at, event.is_all_day)}
-        </div>
-      )}
-    </div>
-  );
-}
+**`src/pages/ClientPlanEditor.tsx` lines 748-760:**
+```diff
+- <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-sm mb-6">
+-   <p className="text-blue-900 dark:text-blue-100">
++ <div className="bg-muted border border-border rounded-lg p-3 text-sm mb-6">
++   <p className="text-foreground">
 ```
 
-### 4.2 BookingRequestCard (`src/features/bookings/components/BookingRequestCard.tsx`)
+**`src/features/events/components/EventEditorModal.tsx` lines 1713-1717:**
+```diff
+- <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 mt-4">
+-   <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+-   <p className="text-sm text-blue-700 dark:text-blue-300">
++ <div className="flex items-start gap-2 p-3 rounded-lg bg-muted border border-border mt-4">
++   <Info className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
++   <p className="text-sm text-muted-foreground">
+```
 
-Same pattern with `getClientColorIndex()`:
+**`src/features/events/components/ClientViewBanner.tsx` lines 11-12:**
+```diff
+- <Alert className="border-blue-200 bg-blue-50/50 mb-4 [&>svg]:top-[20px]">
+-   <Eye className="h-4 w-4 text-blue-600" />
++ <Alert className="border-border bg-muted/50 mb-4 [&>svg]:top-[20px]">
++   <Eye className="h-4 w-4 text-muted-foreground" />
+```
 
-```typescript
-import { getClientColorIndex } from "@/utils/clientColor";
+### 5.2 Badges & Stats → Neutral
 
-// In component:
-const colorIndex = request.coach_client_id 
-  ? getClientColorIndex(request.coach_client_id) 
-  : 1;
+**`src/pages/BookingManagement.tsx` lines 121-123:**
+```diff
+- <p className="text-3xl font-bold text-blue-600">{pendingRequests.length}</p>
+- <Clock className="h-8 w-8 text-blue-600 opacity-50" />
++ <p className="text-3xl font-bold text-foreground">{pendingRequests.length}</p>
++ <Clock className="h-8 w-8 text-muted-foreground opacity-50" />
+```
 
-// Style with borderLeftColor: `hsl(var(--client-${colorIndex}))`
+**`src/features/bookings/components/BookingRequestDrawer.tsx` line 128:**
+```diff
+- <Badge variant="outline" className="text-blue-600 border-blue-600">
++ <Badge variant="outline" className="text-muted-foreground border-border">
+```
+
+**`src/components/plan-editor/GroupCard.tsx` line 130:**
+```diff
+- : "bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium"
++ : "bg-muted text-foreground font-medium"
+```
+
+**`src/features/client-bookings/components/NextAppointmentCard.tsx` line 22:**
+```diff
+- return <Badge variant="secondary" className="bg-blue-500/10 text-blue-700 border-blue-200">Proposta modifica</Badge>;
++ return <Badge variant="secondary" className="bg-muted text-muted-foreground border-border">Proposta modifica</Badge>;
+```
+
+**`src/features/client-bookings/components/ChangeProposalBanner.tsx` lines 31-34:**
+```diff
+- <Alert className="border-blue-200 bg-blue-50/50">
+-   <CalendarClock className="h-4 w-4 text-blue-600" />
+-   <AlertTitle className="text-blue-900">Proposta di modifica</AlertTitle>
+-   <AlertDescription className="text-blue-700">
++ <Alert className="border-border bg-muted/50">
++   <CalendarClock className="h-4 w-4 text-muted-foreground" />
++   <AlertTitle className="text-foreground">Proposta di modifica</AlertTitle>
++   <AlertDescription className="text-muted-foreground">
 ```
 
 ---
 
-## Phase 5: Hardcoded Color Cleanup
+## Phase 6: Gray Color Removal
 
-### FIX #5: Strict Rules for Green Button Migration
-
-**Rule**: Any green button in UI must become:
-- `bg-primary` if it is a **primary action**
-- `bg-success` **only** if it is a "Confirm success / Completed" action in a safety workflow (rare)
-- Otherwise: monochrome button (secondary/outline)
-
-**State indicators**: For "Invite sent", "Saved", "Connected" states → **use success badge/callout**, not a success button.
-
-### Files to Update
-
-| File | Current | Change To |
-|------|---------|-----------|
-| `ActivityStatusBadge.tsx` | `bg-green-50 text-green-700` | `<Badge variant="success">` |
-| `ActivityStatusBadge.tsx` | `bg-yellow-50 text-yellow-700` | `<Badge variant="warning">` |
-| `ActivityStatusBadge.tsx` | `bg-red-50 text-red-700` | `<Badge variant="danger">` |
-| `PackageStatusBadge.tsx` | `bg-green-50 text-green-700` | `<Badge variant="success">` |
-| `PackageStatusBadge.tsx` | `bg-yellow-50 text-yellow-700` | `<Badge variant="warning">` |
-| `PackageStatusBadge.tsx` | `bg-red-50 text-red-700` | `<Badge variant="danger">` |
-| `AppointmentStatusBadge.tsx` | `bg-green-50 text-green-700` | `<Badge variant="success">` |
-| `AppointmentStatusBadge.tsx` | `bg-yellow-50 text-yellow-700` | `<Badge variant="warning">` |
-| `PlanEditorSaveBar.tsx` | `text-green-500` | `text-success` |
-| `PasswordValidationChecklist.tsx` | `text-green-600` | `text-success` |
-| `EventEditorModal.tsx` | `border-yellow-500 bg-yellow-50` | `<Alert variant="warning">` |
-| `ClientInviteSection.tsx` | Multiple green/yellow/red | Semantic tokens |
-| `OutOfOfficeManager.tsx` | `border-red-500 text-red-500` | `border-destructive text-destructive` |
-| `Clients.tsx` | `bg-green-600` buttons | `bg-primary` (action) or `<Badge variant="success">` (state) |
-| `AvailableSlotsOverlay.tsx` | `bg-green-500/10` | `bg-success/10 border-success/30` |
+**`src/features/clients/components/ClientInviteSection.tsx` line 123:**
+```diff
+- return <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">Revocato</Badge>;
++ return <Badge variant="outline" className="bg-muted text-muted-foreground border-border">Revocato</Badge>;
+```
 
 ---
 
-## Phase 6: WCAG Verification (FIX #6)
+## Complete File List
 
-### Required Checks Before Ship
-
-| Check | Requirement | Fallback Knob |
-|-------|-------------|---------------|
-| Primary button text | ≥ 4.5:1 | White on `hsl(220 55% 46%)` should pass |
-| Muted-foreground on paper-98 | ≥ 4.5:1 | If fails: bump to `220 9% 40%` |
-| Muted-foreground on card | ≥ 4.5:1 | Same adjustment if needed |
-| Sidebar foreground on ink-900 | ≥ 4.5:1 | `hsl(0 0% 92%)` on `hsl(220 15% 8%)` should pass |
-| Success icon on success/10 | ≥ 3:1 (graphical) | Should pass |
-| Warning icon on warning/12 | ≥ 3:1 (graphical) | Should pass |
-
-### Risk Items (Document for QA)
-
-1. **`muted-foreground` on `paper-98`**: `220 8% 45%` on `0 0% 98%` is borderline. If it fails WCAG, adjust to `220 9% 40%`
-
-2. **`text-warning` on `bg-warning/10`**: This was changed to `text-foreground` in badges (Fix #3) to avoid contrast issues. Alert/toast icons use `text-warning` which is acceptable for graphical elements.
-
----
-
-## Files to Modify (Complete List)
-
-| Category | File | Changes |
-|----------|------|---------|
-| **Core Theme** | `src/index.css` | Full token overhaul + `.dark` inside `@layer base` + focus-visible CSS |
-| **Tailwind** | `tailwind.config.ts` | Add semantic colors + ink scale, remove sidebar-primary |
-| **Utility** | `src/utils/clientColor.ts` | Add `getClientColorIndex()` function |
-| **Sidebar** | `src/components/AppSidebar.tsx` | Add `data-sidebar="root"`, dark surface, border-l indicator |
-| **Badge** | `src/components/ui/badge.tsx` | Monochrome default + semantic variants with neutral text |
-| **Alert** | `src/components/ui/alert.tsx` | Add semantic variants |
-| **Toast** | `src/components/ui/sonner.tsx` | Semantic tokens + dark mode opacities |
-| **Button** | `src/components/ui/button.tsx` | Neutral hover states |
-| **Calendar** | `src/features/events/components/EventCard.tsx` | Border-left + `getClientColorIndex()` |
-| **Calendar** | `src/features/bookings/components/BookingRequestCard.tsx` | Border-left + defensive null check |
-| **Status Badges** | 3 files | Migrate to semantic badge variants |
-| **Forms** | `OutOfOfficeManager.tsx` | Destructive tokens |
-| **Misc** | 8 additional files | Green/yellow/red → semantic tokens |
+| Category | File | Action |
+|----------|------|--------|
+| **Core Theme** | `src/index.css` | Replace all tokens as specified |
+| **Tailwind** | `tailwind.config.ts` | Add ink-950 |
+| **Sticky Headers** | `src/pages/Clients.tsx` | Remove bg-white, shadow; add border |
+| **Calendar** | `src/features/events/components/WeekView.tsx` | Remove bg-white, shadow, slate borders |
+| **Calendar** | `src/features/events/components/DayView.tsx` | Remove bg-white, shadow, slate borders |
+| **Blue Cleanup** | `src/pages/ClientPlanEditor.tsx` | Neutralize info banners |
+| **Blue Cleanup** | `src/features/events/components/EventEditorModal.tsx` | Neutralize hint box |
+| **Blue Cleanup** | `src/features/events/components/ClientViewBanner.tsx` | Neutralize alert |
+| **Blue Cleanup** | `src/pages/BookingManagement.tsx` | Neutralize stats |
+| **Blue Cleanup** | `src/features/bookings/components/BookingRequestDrawer.tsx` | Neutralize badge |
+| **Blue Cleanup** | `src/components/plan-editor/GroupCard.tsx` | Neutralize circuit badge |
+| **Blue Cleanup** | `src/features/client-bookings/components/NextAppointmentCard.tsx` | Neutralize badge |
+| **Blue Cleanup** | `src/features/client-bookings/components/ChangeProposalBanner.tsx` | Neutralize alert |
+| **Gray Cleanup** | `src/features/clients/components/ClientInviteSection.tsx` | Replace gray tokens |
 
 ---
 
-## Final Visual Acceptance Criteria
+## Acceptance Tests (ALL MUST PASS)
 
-### Global
-- [ ] No `bg-green-*` / `bg-yellow-*` / `bg-red-*` in codebase (except 3rd party)
-- [ ] Accent (blue) appears only on: primary CTA, selected state, links, focus rings
+### Validation Commands
+```bash
+# Pure white check
+grep -rn "#fff\|#ffffff\|bg-white" src/ --include="*.tsx" --include="*.css"
+# Expected: 0 results
 
-### Focus Ring
-- [ ] Focus ring visible on **buttons, links, inputs, calendar events, sidebar nav**, and **custom clickable divs** with `role="button"`
+# Blue check
+grep -rn "blue-\|text-blue\|bg-blue\|border-blue" src/ --include="*.tsx"
+# Expected: 0 results
 
-### Sidebar
-- [ ] Light mode sidebar background is near-black (ink-900)
-- [ ] Sidebar focus ring uses **same hue** as primary (not brighter in light mode)
-- [ ] Inactive items: `text-sidebar-muted`
-- [ ] Hover: `bg-sidebar-hover` + `text-sidebar-foreground`
-- [ ] Active: `bg-sidebar-active` + 2px left bar `bg-primary`
+# Gray/Slate check
+grep -rn "gray-\|slate-" src/ --include="*.tsx"
+# Expected: 0 results
+```
 
-### Forms
-- [ ] Focus ring always visible (box-shadow approach)
-- [ ] Error fields use danger ring (not blue)
-- [ ] Warning fields use warning ring
+### Visual Verification
+- [ ] No pure white (`#ffffff`) anywhere in codebase
+- [ ] No blue visible in UI chrome (buttons, badges, focus rings, banners)
+- [ ] No gray/slate Tailwind tokens
+- [ ] Cards distinguishable from canvas via border
+- [ ] Sticky headers visually merge with background (no shadows)
+- [ ] Primary buttons are dark/black with white text
+- [ ] Focus rings are dark/ink-based
+- [ ] Sidebar remains dark and high-contrast
+- [ ] UI remains readable in grayscale screenshot
 
-### Calendar
-- [ ] Events are neutral blocks (`bg-muted`)
-- [ ] Client differentiation via left border color only
-- [ ] In day view with **overlapping events**, hover does not reflow or overlap labels (no scale)
-
-### Toasts / Alerts
-- [ ] Success/warning/danger appear as subtle tints + border-left
-- [ ] Dark mode tints: success ~0.16, warning ~0.18, danger ~0.14-0.16
-
-### Semantic Usage
-- [ ] Success/Warning backgrounds only appear as **tints** in alerts/toasts/badges; never as large section fills
+### Grayscale Test
+Screenshot the app → desaturate to grayscale. You should see:
+- Clear hierarchy via ink weight only
+- Zero blue anywhere
+- No harsh white blocks
+- Sidebar reading as a deliberate black slab
+- Sticky headers visually welded to the canvas
 
 ---
 
-## Anti-Pattern Rules (Code Review Enforcement)
+## Final Rule
 
-**Never use these classes:**
-- `text-green-*`, `bg-green-*`, `border-green-*` → use `text-success`, `bg-success/*`
-- `text-yellow-*`, `bg-yellow-*`, `border-yellow-*` → use `text-warning`, `bg-warning/*`
-- `text-red-*`, `bg-red-*`, `border-red-*` → use `text-destructive`, `bg-destructive/*`
-- `text-amber-*`, `bg-amber-*` → use `text-warning`, `bg-warning/*`
+If a color does not convey meaning or hierarchy, **remove it**.
 
-**Semantic color only when:**
-- Success: confirmed success states (completed, verified, saved)
-- Warning: caution/penalty/late/cancellation risk
-- Danger: destructive actions and errors
-
-**Every semantic usage must have:**
-- Matching icon (✓, ⚠, ✕)
-- Label text (never color-only)
+The new palette must feel: **Editorial • Calm • Confident • Premium • Fitness-industry appropriate**
 
