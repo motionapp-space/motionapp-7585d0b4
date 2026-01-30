@@ -1,6 +1,5 @@
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 import { Calendar, CalendarX } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
@@ -19,19 +18,19 @@ export function AppointmentStatusBadge({ status, nextAppointmentDate }: Appointm
     planned: {
       label: "Pianificato",
       icon: Calendar,
-      className: "border-green-500/50 bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300"
+      variant: "success" as const,
     },
     unplanned: {
       label: "Da pianificare",
       icon: CalendarX,
-      className: "border-yellow-500/50 bg-yellow-50 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300"
+      variant: "warning" as const,
     }
   };
 
-  const { label, icon: Icon, className } = config[status];
+  const { label, icon: Icon, variant } = config[status];
 
   const badge = (
-    <Badge variant="outline" className={cn("font-medium gap-1", className)}>
+    <Badge variant={variant} className="font-medium gap-1">
       <Icon className="h-3 w-3" />
       {label}
     </Badge>

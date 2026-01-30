@@ -115,8 +115,8 @@ const ClientAcceptInvite = () => {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[hsl(0,0%,96%)] p-4">
         <div className="flex flex-col items-center space-y-4">
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
-            <CheckCircle className="h-10 w-10 text-green-600" />
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-success/10">
+            <CheckCircle className="h-10 w-10 text-success" />
           </div>
           <h2 className="text-2xl font-bold text-foreground">Registrazione completata!</h2>
           <p className="text-muted-foreground">Reindirizzamento al login...</p>
@@ -131,8 +131,8 @@ const ClientAcceptInvite = () => {
       <div className="flex min-h-screen items-center justify-center bg-[hsl(0,0%,96%)] p-4">
         <div className="w-full max-w-md space-y-8">
           <div className="flex flex-col items-center space-y-4">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-100">
-              <AlertCircle className="h-10 w-10 text-red-600" />
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-destructive/10">
+              <AlertCircle className="h-10 w-10 text-destructive" />
             </div>
             <h2 className="text-2xl font-bold text-foreground">Invito non valido</h2>
             <p className="text-center text-muted-foreground">

@@ -8,10 +8,17 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
-        secondary: "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        destructive: "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        outline: "text-foreground",
+        // DEFAULT is monochrome
+        default: "border-transparent bg-muted text-foreground",
+        secondary: "border-transparent bg-muted text-foreground",
+        outline: "border-border text-foreground bg-transparent",
+        destructive: "bg-destructive/10 text-foreground border border-destructive/40 [&>svg]:text-destructive",
+        // Semantic variants use neutral text, icon gets color
+        success: "bg-success/10 text-foreground border border-success/40 [&>svg]:text-success",
+        warning: "bg-warning/12 text-foreground border border-warning/40 [&>svg]:text-warning",
+        danger: "bg-destructive/10 text-foreground border border-destructive/40 [&>svg]:text-destructive",
+        // Optional brand badge (use sparingly)
+        brand: "border-transparent bg-primary text-primary-foreground",
       },
     },
     defaultVariants: {

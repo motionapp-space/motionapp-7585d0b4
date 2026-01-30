@@ -34,7 +34,7 @@ function getStatusBadge(status: ClientAppointmentStatus) {
       );
     case 'CHANGE_PROPOSED':
       return (
-        <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-200">
+        <Badge variant="warning">
           Proposta modifica
         </Badge>
       );
@@ -124,16 +124,16 @@ export function AppointmentDetailSheet({
           {appointment.status === 'CHANGE_PROPOSED' && appointment.proposedStartAt && (
             <>
               <Separator />
-              <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 space-y-2">
-                <p className="text-sm font-medium text-amber-800">Nuovo orario proposto</p>
+              <div className="p-3 rounded-lg bg-warning/12 border border-warning/40 space-y-2">
+                <p className="text-sm font-medium text-foreground">Nuovo orario proposto</p>
                 <div className="flex items-center gap-2 text-sm">
-                  <Calendar className="h-4 w-4 text-amber-600" />
+                  <Calendar className="h-4 w-4 text-warning" />
                   <span className="capitalize">
                     {format(parseISO(appointment.proposedStartAt), "EEEE d MMMM", { locale: it })}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
-                  <Clock className="h-4 w-4 text-amber-600" />
+                  <Clock className="h-4 w-4 text-warning" />
                   <span>
                     {format(parseISO(appointment.proposedStartAt), "HH:mm")} – 
                     {appointment.proposedEndAt && format(parseISO(appointment.proposedEndAt), "HH:mm")}

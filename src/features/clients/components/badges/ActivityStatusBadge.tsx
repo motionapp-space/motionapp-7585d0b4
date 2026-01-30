@@ -1,5 +1,4 @@
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import { Activity, Clock, AlertCircle } from "lucide-react";
 
 interface ActivityStatusBadgeProps {
@@ -15,24 +14,24 @@ export function ActivityStatusBadge({ status }: ActivityStatusBadgeProps) {
     active: {
       label: "Attivo",
       icon: Activity,
-      className: "border-green-500/50 bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300"
+      variant: "success" as const,
     },
     low: {
       label: "Bassa",
       icon: Clock,
-      className: "border-yellow-500/50 bg-yellow-50 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300"
+      variant: "warning" as const,
     },
     inactive: {
       label: "Assente",
       icon: AlertCircle,
-      className: "border-red-500/50 bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300"
+      variant: "danger" as const,
     }
   };
 
-  const { label, icon: Icon, className } = config[status];
+  const { label, icon: Icon, variant } = config[status];
 
   return (
-    <Badge variant="outline" className={cn("font-medium gap-1", className)}>
+    <Badge variant={variant} className="font-medium gap-1">
       <Icon className="h-3 w-3" />
       {label}
     </Badge>

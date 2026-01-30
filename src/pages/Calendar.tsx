@@ -399,9 +399,9 @@ const Calendar = () => {
                 )}
                 
                 {/* Avviso notifiche - SEMPRE visibile */}
-                <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-md text-sm">
-                  <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
-                  <span className="text-amber-800 dark:text-amber-200">
+                <div className="flex items-start gap-2 p-3 bg-warning/12 dark:bg-warning/18 border border-warning/40 rounded-md text-sm">
+                  <AlertTriangle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
+                  <span className="text-foreground">
                     Il cliente riceverà una notifica in-app e via email.
                   </span>
                 </div>
