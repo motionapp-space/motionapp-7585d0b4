@@ -120,67 +120,12 @@ const Auth = () => {
 
   return (
     <div
-      className="relative flex min-h-screen items-center justify-center p-4 overflow-hidden"
+      className="flex min-h-screen items-center justify-center p-4"
       style={{
         background: "radial-gradient(circle at bottom right, hsl(220 14% 98%), hsl(220 15% 6%))"
       }}
     >
-      {/* Decorative light streaks */}
-      <div className="pointer-events-none absolute inset-0">
-        {/* Main curved streak — bright white */}
-        <div
-          className="absolute"
-          style={{
-            bottom: '-10%',
-            right: '-15%',
-            width: '120%',
-            height: '60%',
-            background: 'linear-gradient(135deg, transparent 40%, hsl(220 14% 98% / 0.07) 50%, hsl(220 14% 98% / 0.15) 52%, hsl(220 14% 98% / 0.07) 54%, transparent 64%)',
-            borderRadius: '50%',
-            transform: 'rotate(-8deg)',
-          }}
-        />
-        {/* Secondary streak — softer */}
-        <div
-          className="absolute"
-          style={{
-            bottom: '-18%',
-            right: '-20%',
-            width: '130%',
-            height: '55%',
-            background: 'linear-gradient(135deg, transparent 38%, hsl(220 14% 98% / 0.04) 48%, hsl(220 14% 98% / 0.10) 50%, hsl(220 14% 98% / 0.04) 52%, transparent 62%)',
-            borderRadius: '50%',
-            transform: 'rotate(-12deg)',
-          }}
-        />
-        {/* Thin accent streak */}
-        <div
-          className="absolute"
-          style={{
-            bottom: '-5%',
-            right: '-10%',
-            width: '110%',
-            height: '50%',
-            background: 'linear-gradient(135deg, transparent 44%, hsl(220 15% 10% / 0.08) 52%, hsl(220 14% 98% / 0.20) 53%, hsl(220 15% 10% / 0.08) 54%, transparent 62%)',
-            borderRadius: '50%',
-            transform: 'rotate(-5deg)',
-          }}
-        />
-        {/* Glow spot at origin */}
-        <div
-          className="absolute"
-          style={{
-            bottom: '-8%',
-            right: '-8%',
-            width: '40%',
-            height: '40%',
-            background: 'radial-gradient(circle, hsl(220 14% 98% / 0.12) 0%, transparent 70%)',
-            filter: 'blur(40px)',
-          }}
-        />
-      </div>
-
-      <div className="relative z-10 w-full max-w-md space-y-8">
+      <div className="w-full max-w-md space-y-8">
         {/* Icon and Title */}
         <div className="text-center space-y-4">
           <div className="mx-auto w-20 h-20 bg-[hsl(220,70%,95%)] rounded-3xl flex items-center justify-center">
