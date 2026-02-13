@@ -119,12 +119,7 @@ const Auth = () => {
   const [activeTab, setActiveTab] = useState<"signin" | "signup">("signin");
 
   return (
-    <div
-      className="flex min-h-screen items-center justify-center p-4"
-      style={{
-        background: "radial-gradient(circle at bottom right, hsl(220 14% 98%), hsl(220 15% 6%))"
-      }}
-    >
+    <div className="flex min-h-screen items-center justify-center bg-[hsl(0,0%,96%)] p-4">
       <div className="w-full max-w-md space-y-8">
         {/* Icon and Title */}
         <div className="text-center space-y-4">
