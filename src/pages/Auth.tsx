@@ -126,7 +126,7 @@ const Auth = () => {
         src={authBg}
         alt=""
         className="absolute inset-0 w-full h-full object-cover opacity-40"
-        style={{ objectPosition: "40% center" }}
+        style={{ objectPosition: "calc(40% - 200px) center" }}
       />
       <div className="w-full max-w-md space-y-8">
         {/* Icon and Title */}
