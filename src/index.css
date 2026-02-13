@@ -127,16 +127,16 @@ All colors MUST be HSL.
 
     --radius: 1rem;
 
-    /* === SIDEBAR (DARK IN LIGHT MODE) === */
-    --sidebar-background: 220 15% 6%;
-    --sidebar-foreground: 0 0% 94%;
-    --sidebar-muted: 220 10% 65%;
-    --sidebar-hover: 220 12% 12%;
-    --sidebar-active: 220 12% 16%;
-    --sidebar-border: 220 12% 12%;
-    --sidebar-accent: 220 10% 22%;
-    --sidebar-accent-foreground: 0 0% 92%;
-    --sidebar-ring: 220 15% 10%;
+    /* === SIDEBAR (PURPLE) === */
+    --sidebar-background: 264 73% 52%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-muted: 264 30% 78%;
+    --sidebar-hover: 264 73% 60%;
+    --sidebar-active: 264 73% 45%;
+    --sidebar-border: 264 73% 45%;
+    --sidebar-accent: 264 60% 40%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-ring: 264 73% 45%;
 
     /* === CLIENT COLORS (CALENDAR EVENTS) === */
     --client-1: 226 80% 52%;
@@ -212,15 +212,15 @@ All colors MUST be HSL.
     --ring: 220 15% 20%;
 
     /* Sidebar */
-    --sidebar-background: 220 15% 6%;
-    --sidebar-foreground: 0 0% 92%;
-    --sidebar-muted: 220 8% 70%;
-    --sidebar-hover: 220 12% 14%;
-    --sidebar-active: 220 10% 22%;
-    --sidebar-border: 220 10% 22%;
-    --sidebar-accent: 220 10% 22%;
-    --sidebar-accent-foreground: 0 0% 92%;
-    --sidebar-ring: 220 15% 20%;
+    --sidebar-background: 264 73% 52%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-muted: 264 30% 78%;
+    --sidebar-hover: 264 73% 60%;
+    --sidebar-active: 264 73% 45%;
+    --sidebar-border: 264 73% 45%;
+    --sidebar-accent: 264 60% 40%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-ring: 264 73% 45%;
 
     /* Client colors (brighter for dark mode) */
     --client-1: 226 75% 60%;
