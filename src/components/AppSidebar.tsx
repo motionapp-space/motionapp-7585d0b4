@@ -72,7 +72,7 @@ export function AppSidebar({ collapsed = false, onNavClick }: AppSidebarProps) {
                 onClick={onNavClick}
                 className={cn(
                   "group relative flex items-center rounded-full transition-[background-color,color] duration-[120ms] ease-out",
-                  "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/30 focus-visible:bg-sidebar-hover focus-visible:text-sidebar-foreground",
+                  "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:bg-sidebar-hover focus-visible:text-sidebar-foreground",
                   collapsed
                     ? "justify-center px-2 py-2.5"
                     : "gap-3 px-3 py-2.5",
@@ -85,10 +85,10 @@ export function AppSidebar({ collapsed = false, onNavClick }: AppSidebarProps) {
               >
                 {/* Active indicator bar */}
                 {active && !collapsed && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-[28px] bg-primary" />
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-[28px] bg-[hsl(var(--accent))]" />
                 )}
                 {active && collapsed && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-6 bg-primary" />
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-6 bg-[hsl(var(--accent))]" />
                 )}
                 <Icon className="h-5 w-5 shrink-0" />
                 {!collapsed && (

@@ -33,7 +33,7 @@ export const DraggableHandle = ({
         touch-none shrink-0
         flex items-center justify-center
         min-w-[36px] min-h-[36px]
-        hover:bg-accent/50 rounded-lg
+        hover:bg-[hsl(var(--accent-soft-4))] rounded-lg
         transition-colors
         border border-border/20
         ${className}

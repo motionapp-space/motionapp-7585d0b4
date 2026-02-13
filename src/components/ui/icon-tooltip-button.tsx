@@ -14,7 +14,7 @@ export function IconTooltipButton({ label, className, children, ...btn }: Props)
         <button
           {...btn}
           className={cn(
-            "inline-flex items-center justify-center p-2 rounded-md hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors",
+            "inline-flex items-center justify-center p-2 rounded-md hover:bg-[hsl(var(--accent-soft-4))] hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors",
             className
           )}
           aria-label={label}

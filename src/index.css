@@ -98,10 +98,14 @@ All colors MUST be HSL.
     --muted: 220 12% 96%;
     --muted-foreground: 220 8% 48%;
 
-    /* === ACCENT (NEUTRAL) === */
-    --accent: 220 8% 92%;
-    --accent-foreground: 220 15% 8%;
-    --accent-hover: 220 8% 88%;
+    /* === ACCENT (ICE NEUTRAL) === */
+    --accent: 222 35% 68%;
+    --accent-foreground: 220 15% 6%;
+    --accent-soft-2: 222 55% 94% / 0.35;
+    --accent-soft-4: 222 55% 94% / 0.55;
+    --accent-soft-6: 222 55% 94% / 0.70;
+    --selection-bg: 222 55% 94%;
+    --selection-border: 222 35% 68% / 0.5;
 
     /* === DESTRUCTIVE === */
     --destructive: 0 65% 48%;
@@ -123,7 +127,7 @@ All colors MUST be HSL.
     /* === BORDERS & INPUTS === */
     --border: 220 14% 90%;
     --input: 220 8% 92%;
-    --ring: 220 15% 10%;
+    --ring: 222 35% 68%;
 
     --radius: 1rem;
 
@@ -197,10 +201,14 @@ All colors MUST be HSL.
     --muted: 220 12% 18%;
     --muted-foreground: 220 8% 70%;
 
-    /* Accent (neutral) */
-    --accent: 220 10% 22%;
-    --accent-foreground: 0 0% 92%;
-    --accent-hover: 220 10% 26%;
+    /* Accent (ice neutral) */
+    --accent: 222 35% 72%;
+    --accent-foreground: 220 15% 6%;
+    --accent-soft-2: 222 35% 72% / 0.06;
+    --accent-soft-4: 222 35% 72% / 0.10;
+    --accent-soft-6: 222 35% 72% / 0.14;
+    --selection-bg: 222 35% 72% / 0.10;
+    --selection-border: 222 35% 72% / 0.35;
 
     /* Destructive */
     --destructive: 0 65% 55%;
@@ -209,7 +217,7 @@ All colors MUST be HSL.
     /* Borders & inputs */
     --border: 220 10% 22%;
     --input: 220 10% 22%;
-    --ring: 220 15% 20%;
+    --ring: 222 35% 72%;
 
     /* Sidebar */
     --sidebar-background: 220 15% 6%;
@@ -319,6 +327,16 @@ All colors MUST be HSL.
   box-shadow:
     0 0 0 2px hsl(var(--background)),
     0 0 0 4px hsl(var(--ring));
+}
+
+/* Global link styling for unstyled anchors */
+a:not([class]) {
+  color: hsl(var(--accent));
+  text-decoration-line: underline;
+  text-underline-offset: 4px;
+}
+a:not([class]):hover {
+  opacity: 0.8;
 }
 
 /* Sidebar-specific focus — 5px spread for visibility on dark */

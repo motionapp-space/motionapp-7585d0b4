@@ -192,7 +192,7 @@ export function ClientAppointmentModal({
                         />
                         <Label
                           htmlFor={slot.start}
-                          className="flex flex-1 items-center justify-center rounded-md border-2 border-muted bg-background px-3 py-2 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer text-sm"
+                          className="flex flex-1 items-center justify-center rounded-md border-2 border-muted bg-background px-3 py-2 hover:bg-[hsl(var(--accent-soft-4))] hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer text-sm"
                         >
                           <Clock className="mr-2 h-3 w-3" />
                           {format(new Date(slot.start), "HH:mm")}

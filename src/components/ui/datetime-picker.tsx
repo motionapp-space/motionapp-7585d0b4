@@ -158,7 +158,7 @@ const handleToday = () => {
               onClick={() => handleTimeSelect(timeOption)}
               className={cn(
                 "w-full justify-center text-sm px-2 mb-1",
-                time === timeOption && "bg-accent"
+                time === timeOption && "bg-[hsl(var(--accent-soft-4))]"
               )}
             >
               {timeOption}
