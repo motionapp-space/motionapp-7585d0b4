@@ -120,11 +120,38 @@ const Auth = () => {
 
   return (
     <div
-      className="flex min-h-screen items-center justify-center p-4"
+      className="relative flex min-h-screen items-center justify-center p-4 overflow-hidden"
       style={{
         background: "radial-gradient(circle at bottom right, hsl(220 14% 98%), hsl(220 15% 6%))"
       }}
     >
+      {/* Abstract curved waves from top-left */}
+      <svg
+        className="absolute top-0 left-0 w-full h-full pointer-events-none"
+        viewBox="0 0 1440 900"
+        preserveAspectRatio="xMinYMin slice"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M-100 0C-100 0 100 150 300 200S600 180 800 300S1100 500 1440 450"
+          stroke="hsl(220 14% 40%)"
+          strokeWidth="0.8"
+          opacity="0.15"
+        />
+        <path
+          d="M-80 -40C-80 -40 120 130 350 160S650 120 880 260S1150 420 1440 380"
+          stroke="hsl(220 14% 50%)"
+          strokeWidth="0.5"
+          opacity="0.1"
+        />
+        <path
+          d="M-120 60C-120 60 80 200 280 270S580 240 820 370S1080 560 1440 520"
+          stroke="hsl(220 14% 35%)"
+          strokeWidth="0.6"
+          opacity="0.12"
+        />
+      </svg>
       <div className="w-full max-w-md space-y-8">
         {/* Icon and Title */}
         <div className="text-center space-y-4">
