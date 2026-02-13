@@ -9,8 +9,8 @@ const badgeVariants = cva(
     variants: {
       variant: {
         // DEFAULT is monochrome
-        default: "border-transparent bg-accent text-accent-foreground",
-        secondary: "border-transparent bg-accent text-accent-foreground",
+        default: "border-transparent bg-accent text-foreground",
+        secondary: "border-transparent bg-accent text-foreground",
         outline: "border-border text-foreground bg-transparent",
         destructive: "bg-destructive/10 text-foreground border border-destructive/40 [&>svg]:text-destructive",
         // Semantic variants use neutral text, icon gets color
