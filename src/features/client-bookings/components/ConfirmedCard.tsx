@@ -16,7 +16,7 @@ export function ConfirmedCard({ appointment, onClick }: ConfirmedCardProps) {
 
   return (
     <Card 
-      className="cursor-pointer hover:bg-accent/30 transition-colors shadow-sm"
+      className="cursor-pointer hover:bg-[hsl(var(--accent-soft-2))] transition-colors shadow-sm"
       onClick={onClick}
     >
       <CardContent className="p-5 space-y-4">

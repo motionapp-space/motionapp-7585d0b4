@@ -219,9 +219,9 @@ export function SlotSelectorSheet({ open, onOpenChange }: SlotSelectorSheetProps
                       className={cn(
                         "flex flex-col items-center py-2 px-1 rounded-lg transition-colors",
                         isSelected 
-                          ? "bg-primary text-primary-foreground" 
+                            ? "bg-primary text-primary-foreground" 
                           : hasSlots 
-                            ? "bg-accent hover:bg-accent/80" 
+                            ? "bg-[hsl(var(--accent-soft-6))] hover:bg-[hsl(var(--accent-soft-4))]" 
                             : "opacity-50"
                       )}
                     >

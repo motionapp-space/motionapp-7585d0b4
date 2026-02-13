@@ -32,7 +32,7 @@ export function ClientHistoryItem({
       onClick={onClick}
       className={cn(
         "w-full flex items-center justify-between gap-3 py-3.5 text-left transition-colors",
-        onClick && "hover:bg-accent/30 cursor-pointer -mx-2 px-2 rounded-lg",
+        onClick && "hover:bg-[hsl(var(--accent-soft-2))] cursor-pointer -mx-2 px-2 rounded-lg",
         className
       )}
     >

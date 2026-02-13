@@ -94,7 +94,7 @@ export function DayPicker({
                 {days.map((day, index) => {
                   const isSuggested = linkedDayId ? day.id === linkedDayId : index === 0;
                   return (
-                    <div key={day.id} className="flex items-center space-x-3 rounded-lg border p-3 hover:bg-accent cursor-pointer">
+                    <div key={day.id} className="flex items-center space-x-3 rounded-lg border p-3 hover:bg-[hsl(var(--accent-soft-4))] cursor-pointer">
                       <RadioGroupItem value={day.id} id={day.id} />
                       <Label htmlFor={day.id} className="flex-1 cursor-pointer">
                         <div className="flex items-center gap-2">

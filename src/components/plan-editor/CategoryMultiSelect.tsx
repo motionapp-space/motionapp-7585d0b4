@@ -165,7 +165,7 @@ export function CategoryMultiSelect({
                     handleAddCategory(suggestion);
                     setIsOpen(false);
                   }}
-                  className="w-full rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none"
+                  className="w-full rounded-sm px-2 py-1.5 text-left text-sm hover:bg-[hsl(var(--accent-soft-4))] hover:text-accent-foreground focus:bg-[hsl(var(--accent-soft-4))] focus:text-accent-foreground focus:outline-none"
                 >
                   {suggestion}
                 </button>
@@ -179,7 +179,7 @@ export function CategoryMultiSelect({
                   handleAddCategory(inputValue);
                   setIsOpen(false);
                 }}
-                className="w-full rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                className="w-full rounded-sm px-2 py-1.5 text-left text-sm hover:bg-[hsl(var(--accent-soft-4))] hover:text-accent-foreground"
               >
                 Crea "{validateCategory(inputValue)}"
               </button>

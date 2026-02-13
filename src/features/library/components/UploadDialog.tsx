@@ -109,7 +109,7 @@ export default function UploadDialog({ open, onOpenChange }: UploadDialogProps) 
               "relative border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all",
               isDragging 
                 ? "border-primary bg-primary/5 scale-[1.02]" 
-                : "border-muted-foreground/25 hover:border-primary hover:bg-accent/50",
+                : "border-muted-foreground/25 hover:border-primary hover:bg-[hsl(var(--accent-soft-4))]",
               file && "border-primary bg-primary/5"
             )}
           >

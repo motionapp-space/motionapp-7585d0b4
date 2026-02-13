@@ -44,7 +44,7 @@ export function SlotGrid({ slots, selectedSlot, onSlotSelect, isLoading }: SlotG
           variant={isSlotSelected(slot) ? "default" : "outline"}
           className={cn(
             "h-auto py-3 px-4 text-sm font-normal transition-all hover:scale-105",
-            isSlotSelected(slot) && "ring-2 ring-primary ring-offset-2 scale-105"
+            isSlotSelected(slot) && "ring-2 ring-[hsl(var(--accent))] ring-offset-2 scale-105"
           )}
           onClick={() => onSlotSelect(slot)}
         >

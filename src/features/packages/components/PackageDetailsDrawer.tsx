@@ -381,7 +381,7 @@ export function PackageDetailsDrawer({
                     <div className="h-full flex">
                       {pkg.consumed_sessions > 0 && (
                         <div 
-                          className="h-full bg-accent transition-all"
+                          className="h-full bg-[hsl(var(--accent-soft-6))] transition-all"
                           style={{ width: `${(pkg.consumed_sessions / pkg.total_sessions) * 100}%` }}
                           title={`Completate: ${pkg.consumed_sessions}`}
                         />

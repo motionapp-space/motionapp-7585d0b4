@@ -1096,7 +1096,7 @@ export function EventEditorModal({
                               "flex items-center gap-3 rounded-xl border p-4 min-h-14 cursor-pointer transition-colors",
                               isSelected 
                                 ? "border-primary bg-primary/5" 
-                                : "border-muted hover:bg-accent"
+                                : "border-muted hover:bg-[hsl(var(--accent-soft-4))]"
                             )}
                             onClick={() => setSessionDayId(day.id)}
                           >

@@ -55,7 +55,7 @@ export function MonthView({ date, events, onEventClick }: MonthViewProps) {
               className={cn(
                 "min-h-[100px] border-r border-b last:border-r-0",
                 !isCurrentMonth && "bg-muted/30",
-                isToday && "bg-accent/10"
+                isToday && "bg-[hsl(var(--accent-soft-4))]"
               )}
             >
               <CalendarMonthCell

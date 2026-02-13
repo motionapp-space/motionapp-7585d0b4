@@ -64,7 +64,7 @@ export function ExerciseHistoryDrawer({
                 {filteredHistory.map((actual, index) => (
                   <div
                     key={actual.id}
-                    className="border rounded-lg p-4 space-y-2 hover:bg-accent/50 transition-colors min-h-[44px]"
+                    className="border rounded-lg p-4 space-y-2 hover:bg-[hsl(var(--accent-soft-4))] transition-colors min-h-[44px]"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="space-y-1">

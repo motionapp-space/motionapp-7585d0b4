@@ -128,14 +128,14 @@ export function DayView({
         {/* Day header content */}
         <div className={cn(
           "flex-1 flex items-center justify-center gap-2",
-          isToday && "bg-primary/5"
+          isToday && "bg-[hsl(var(--accent-soft-2))]"
         )}>
           <span className="text-xs text-muted-foreground uppercase">
             {format(date, "EEEE", { locale: it })}
           </span>
           <span className={cn(
             "text-sm font-semibold",
-            isToday && "bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs"
+            isToday && "bg-[hsl(var(--accent-soft-6))] border border-[hsl(var(--selection-border))] text-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs"
           )}>
             {format(date, "d")}
           </span>
@@ -170,7 +170,7 @@ export function DayView({
         <div 
           className={cn(
             "flex-1 relative",
-            isToday && "bg-primary/[0.02]",
+            isToday && "bg-[hsl(var(--accent-soft-2))]",
             isPreviewMode ? 'cursor-default' : 'cursor-pointer'
           )}
           style={{ height: gridHeight }}

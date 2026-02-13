@@ -156,7 +156,7 @@ export function WeekView({
               key={day.toISOString()}
               className={cn(
                 "flex-1 flex items-center justify-center gap-2 border-r last:border-r-0 border-border/30",
-                isToday && "bg-primary/5"
+                isToday && "bg-[hsl(var(--accent-soft-2))]"
               )}
             >
               <span className="text-xs text-muted-foreground uppercase">
@@ -164,7 +164,7 @@ export function WeekView({
               </span>
               <span className={cn(
                 "text-sm font-semibold",
-                isToday && "bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs"
+                isToday && "bg-[hsl(var(--accent-soft-6))] border border-[hsl(var(--selection-border))] text-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs"
               )}>
                 {format(day, "d")}
               </span>
@@ -215,7 +215,7 @@ export function WeekView({
                 key={day.toISOString()} 
                 className={cn(
                   "flex-1 relative border-r last:border-r-0 border-border/40",
-                  isDayToday && "bg-primary/[0.02]",
+                  isDayToday && "bg-[hsl(var(--accent-soft-2))]",
                   isPreviewMode ? 'cursor-default' : 'cursor-pointer'
                 )}
                 onClick={(e) => {

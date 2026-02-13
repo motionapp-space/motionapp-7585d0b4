@@ -169,7 +169,7 @@ export default function CopilotPanel({ open, onClose }: CopilotPanelProps) {
               {quickPrompts.map(s => (
                 <button
                   key={s}
-                  className="rounded-md border px-3 py-2 text-sm hover:bg-accent transition-colors"
+                  className="rounded-md border px-3 py-2 text-sm hover:bg-[hsl(var(--accent-soft-4))] transition-colors"
                   onClick={() => setInput(s)}
                 >
                   {s}
