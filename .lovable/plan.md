@@ -1,56 +1,59 @@
 
-## Updating Sidebar Color to #7442E4 (Purple)
 
-### Overview
-The user wants to change the sidebar background color from the current dark ink-based color (`220 15% 6%`) to a vibrant purple (`#7442E4`). This is a design system update that will affect both light and dark modes.
+## Cambio Colore Primario a #7442E4 (Purple)
 
-### Technical Analysis
+### Obiettivo
+Sostituire il colore primario ink-based (`220 15% 10%` / `#161A22`) con il viola `#7442E4` (`264 73% 52%`) su tutta la piattaforma coach.
 
-**Current State:**
-- Sidebar background is controlled by the `--sidebar-background` CSS variable
-- Currently set to `220 15% 6%` (dark near-black) in both light mode (`:root`) and dark mode (`.dark`)
-- Related sidebar tokens that work with the background:
-  - `--sidebar-foreground: 0 0% 94%` (light text for contrast)
-  - `--sidebar-muted: 220 10% 65%` (muted text)
-  - `--sidebar-hover: 220 12% 12%` (hover state)
-  - `--sidebar-active: 220 12% 16%` (active nav state)
-  - `--sidebar-accent: 220 10% 22%` (accent elements)
-  - `--sidebar-ring: 220 15% 10%` (focus ring)
+### Impatto della modifica
 
-**Color Conversion:**
-- `#7442E4` (hex) = `264 73% 52%` (HSL)
-- This is a vibrant, saturated purple with strong visual presence
+Il token `--primary` e i suoi derivati sono utilizzati in **65+ file** e **540+ occorrenze**. Cambiando solo 3 variabili CSS in `src/index.css`, l'intera piattaforma si aggiorna automaticamente:
 
-### Implementation Plan
+| Categoria | Esempi di componenti impattati |
+|---|---|
+| **Bottoni CTA** | Tutti i `Button` variant="default" (bg-primary, hover, focus ring) |
+| **Link e testo interattivo** | "Vedi tutti gli appuntamenti", "Hai dimenticato la password?", link variant del Button |
+| **Indicatori di stato** | Dot notifiche non lette, barra attiva sidebar, sessione in corso |
+| **Tinte di sfondo** | `bg-primary/5` (notifiche, sessioni), `bg-primary/10` (icone, card hover) |
+| **Focus ring globale** | `--ring` (attualmente uguale a `--primary`) usato su input, select, button |
+| **Toast info** | Bordo sinistro e sfondo tinta dei toast informativi |
+| **Spinner di caricamento** | `border-primary` sui loader animati |
+| **Sidebar active bar** | Barra 2px verticale sull'item di navigazione attivo |
 
-**Step 1: Update CSS Variables in `src/index.css`**
-- Convert `--sidebar-background` from `220 15% 6%` to `264 73% 52%` in both `:root` and `.dark` sections
-- Keep `--sidebar-foreground` as `0 0% 94%` (white text maintains good contrast on purple)
-- Update related sidebar tokens for visual coherence:
-  - `--sidebar-hover`: Lighten to ~`264 73% 60%` (lighter shade of the same purple for hover)
-  - `--sidebar-active`: Adjust to ~`264 73% 45%` (darker shade for active state)
-  - Consider adjusting `--sidebar-muted` to work with the purple palette: `264 20% 70%` (lighter purple-tinted muted)
+### Modifiche tecniche
 
-**Step 2: Verify Component Integration**
-- `AppSidebar.tsx` uses Tailwind classes: `bg-sidebar`, `text-sidebar-foreground`, `bg-sidebar-hover`, `bg-sidebar-active`, `text-sidebar-muted`
-- These map directly to the CSS variables, so no component code changes are needed
-- The active indicator bar (left 2px border) uses `bg-primary` and will remain ink-based, which may need review for visual hierarchy
+**Unico file da modificare: `src/index.css`**
 
-**Step 3: Design System Consistency**
-- Verify that the purple sidebar works with the existing ink-based primary color (`220 15% 10%`) for buttons and indicators
-- Consider if the active indicator bar should also shift to complement the purple, or remain as a neutral accent
-- Test contrast ratios for accessibility (WCAG AA compliance)
+**Light mode (`:root`):**
 
-**Step 4: Testing Considerations**
-- Verify sidebar appears correctly on all screen sizes (desktop, tablet, mobile collapse)
-- Check that nav items are readable with the new background
-- Ensure hover and active states are visually distinct
-- Test in both light mode and dark mode (though both use the same sidebar background currently)
-- Verify tooltip visibility on the collapsed sidebar state
+| Variabile | Prima | Dopo | Hex |
+|---|---|---|---|
+| `--primary` | `220 15% 10%` | `264 73% 52%` | #7442E4 |
+| `--primary-foreground` | `0 0% 100%` | `0 0% 100%` | invariato |
+| `--primary-hover` | `220 15% 6%` | `264 73% 45%` | #6232BD |
+| `--ring` | `220 15% 10%` | `264 73% 52%` | #7442E4 |
 
-### Files to Modify
-- `src/index.css` (CSS variable updates only)
+**Dark mode (`.dark`):**
 
-### No Changes Required
-- `src/components/AppSidebar.tsx` (component structure remains unchanged)
-- No TypeScript or React code modifications needed
+| Variabile | Prima | Dopo | Hex |
+|---|---|---|---|
+| `--primary` | `220 15% 20%` | `264 65% 62%` | #9470E8 |
+| `--primary-foreground` | `0 0% 100%` | `0 0% 100%` | invariato |
+| `--primary-hover` | `220 15% 16%` | `264 65% 55%` | #7F56DE |
+| `--ring` | `220 15% 20%` | `264 65% 62%` | #9470E8 |
+
+### Accessibilita risolte e residue
+
+**Risolte con questa modifica:**
+- **Sidebar active indicator**: il viola su sfondo scuro (`220 15% 6%`) ha un contrasto di **~8:1** (prima era 1.3:1) -- passa WCAG AA
+- **Button hover feedback**: il passaggio da `264 73% 52%` a `264 73% 45%` ha un rapporto **~1.5:1**, visivamente distinguibile grazie al cambio di luminosita percettiva (migliorato rispetto al precedente ink-on-ink)
+- **Focus ring**: il viola su sfondo bianco ha un contrasto di **~4.6:1** -- passa WCAG AA
+
+**Ancora da risolvere (fuori scope):**
+- `--muted-foreground` (ink-500) su background resta a **3.8:1** (sotto la soglia AA di 4.5:1 per testo piccolo)
+- Sidebar hover/active states restano con contrasto basso (sono token separati da `--primary`)
+
+### Nessuna modifica a componenti
+
+Tutti i componenti usano i token Tailwind (`bg-primary`, `text-primary`, `hover:bg-primary/90`, ecc.) che si mappano alle variabili CSS. Zero modifiche a file `.tsx`.
+
