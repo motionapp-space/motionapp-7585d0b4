@@ -52,10 +52,13 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      // Split name into first_name and last_name for Unified Identity
       const nameParts = name.trim().split(' ');
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || null;
 
+      // Use dedicated edge function for coach signup
+      // This ensures atomic creation of auth user + coaches record + coach role
       const { data, error } = await supabase.functions.invoke('signup-coach', {
         body: {
           email,
@@ -67,19 +70,23 @@ const Auth = () => {
 
       if (error) throw error;
       
+      // Check for error in response body
       if (data?.error) {
         throw new Error(data.error);
       }
       
+      // Salva l'email per pre-popolarla nella tab login
       const registeredEmail = email;
       
       toast.success("Account creato con successo! Accedi per continuare.");
       
+      // Reset campi (tranne email)
       setPassword("");
       setName("");
       setConfirmPassword("");
       setAcceptedTerms(false);
       
+      // Cambia tab e mantieni l'email per facilitare il login
       setActiveTab("signin");
       setEmail(registeredEmail);
     } catch (error: any) {
@@ -112,39 +119,31 @@ const Auth = () => {
   const [activeTab, setActiveTab] = useState<"signin" | "signup">("signin");
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4" style={{ background: 'hsl(220, 15%, 6%)' }}>
+    <div className="flex min-h-screen items-center justify-center bg-[hsl(0,0%,96%)] p-4">
       <div className="w-full max-w-md space-y-8">
         {/* Icon and Title */}
         <div className="text-center space-y-4">
-          <div
-            className="mx-auto w-20 h-20 rounded-3xl flex items-center justify-center"
-            style={{ background: 'hsl(210, 60%, 88%)' }}
-          >
-            <Dumbbell className="h-10 w-10" style={{ color: 'hsl(220, 15%, 6%)' }} />
+          <div className="mx-auto w-20 h-20 bg-[hsl(220,70%,95%)] rounded-3xl flex items-center justify-center">
+            <Dumbbell className="h-10 w-10 text-primary" />
           </div>
           <div>
-            <h1 className="text-4xl font-bold" style={{ color: 'hsl(0, 0%, 100%)' }}>Motion</h1>
-            <p style={{ color: 'hsl(210, 60%, 88%)' }} className="mt-2">
+            <h1 className="text-4xl font-bold text-foreground">Motion</h1>
+            <p className="text-muted-foreground mt-2">
               Crea e gestisci piani di allenamento professionali con l'assistenza AI
             </p>
           </div>
         </div>
 
         {/* Custom Tab Toggle */}
-        <div className="rounded-full p-1.5 flex gap-1" style={{ background: 'hsl(220, 12%, 14%)' }}>
+        <div className="bg-[hsl(220,15%,92%)] rounded-full p-1.5 flex gap-1">
           <button
             type="button"
             onClick={() => setActiveTab("signin")}
             className={`flex-1 py-3 px-6 rounded-full text-sm font-medium transition-all ${
               activeTab === "signin"
-                ? "shadow-sm"
-                : ""
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
             }`}
-            style={
-              activeTab === "signin"
-                ? { background: 'hsl(210, 60%, 88%)', color: 'hsl(220, 15%, 6%)' }
-                : { color: 'hsl(220, 8%, 55%)' }
-            }
           >
             Accedi
           </button>
@@ -153,14 +152,9 @@ const Auth = () => {
             onClick={() => setActiveTab("signup")}
             className={`flex-1 py-3 px-6 rounded-full text-sm font-medium transition-all ${
               activeTab === "signup"
-                ? "shadow-sm"
-                : ""
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
             }`}
-            style={
-              activeTab === "signup"
-                ? { background: 'hsl(210, 60%, 88%)', color: 'hsl(220, 15%, 6%)' }
-                : { color: 'hsl(220, 8%, 55%)' }
-            }
           >
             Registrati
           </button>
@@ -171,7 +165,7 @@ const Auth = () => {
 
             <form onSubmit={handleSignIn} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email-signin" className="font-medium" style={{ color: 'hsl(220, 8%, 70%)' }}>
+                <Label htmlFor="email-signin" className="text-foreground font-medium">
                   Email
                 </Label>
                 <Input
@@ -181,12 +175,11 @@ const Auth = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="h-12 rounded-2xl text-base border-0 placeholder:text-[hsl(220,8%,40%)]"
-                  style={{ background: 'hsl(220, 12%, 14%)', color: 'hsl(0, 0%, 92%)' }}
+                  className="h-12 rounded-2xl bg-card border-border text-base"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password-signin" className="font-medium" style={{ color: 'hsl(220, 8%, 70%)' }}>
+                <Label htmlFor="password-signin" className="text-foreground font-medium">
                   Password
                 </Label>
                 <div className="relative">
@@ -197,14 +190,12 @@ const Auth = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="h-12 rounded-2xl text-base pr-12 border-0 placeholder:text-[hsl(220,8%,40%)]"
-                    style={{ background: 'hsl(220, 12%, 14%)', color: 'hsl(0, 0%, 92%)' }}
+                    className="h-12 rounded-2xl bg-card border-border text-base pr-12"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors"
-                    style={{ color: 'hsl(210, 60%, 88%)' }}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-primary hover:text-primary-hover transition-colors"
                   >
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
@@ -213,17 +204,15 @@ const Auth = () => {
               <div className="flex justify-end">
                 <Link 
                   to="/forgot-password" 
-                  className="text-sm hover:underline"
-                  style={{ color: 'hsl(210, 60%, 88%)' }}
+                  className="text-sm text-primary hover:underline"
                 >
                   Hai dimenticato la password?
                 </Link>
               </div>
               <Button 
                 type="submit" 
-                className="w-full h-14 rounded-3xl text-base font-semibold shadow-lg hover:shadow-xl transition-all border-0" 
+                className="w-full h-14 rounded-3xl text-base font-semibold shadow-lg hover:shadow-xl transition-all" 
                 disabled={loading}
-                style={{ background: 'hsl(210, 60%, 88%)', color: 'hsl(220, 15%, 6%)' }}
               >
                 {loading ? "Accesso in corso..." : "Accedi"}
               </Button>
@@ -232,7 +221,7 @@ const Auth = () => {
 
             <form onSubmit={handleSignUp} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="name-signup" className="font-medium" style={{ color: 'hsl(220, 8%, 70%)' }}>
+                <Label htmlFor="name-signup" className="text-foreground font-medium">
                   Nome
                 </Label>
                 <Input
@@ -242,12 +231,11 @@ const Auth = () => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  className="h-12 rounded-2xl text-base border-0 placeholder:text-[hsl(220,8%,40%)]"
-                  style={{ background: 'hsl(220, 12%, 14%)', color: 'hsl(0, 0%, 92%)' }}
+                  className="h-12 rounded-2xl bg-card border-border text-base"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email-signup" className="font-medium" style={{ color: 'hsl(220, 8%, 70%)' }}>
+                <Label htmlFor="email-signup" className="text-foreground font-medium">
                   Email
                 </Label>
                 <Input
@@ -257,12 +245,11 @@ const Auth = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="h-12 rounded-2xl text-base border-0 placeholder:text-[hsl(220,8%,40%)]"
-                  style={{ background: 'hsl(220, 12%, 14%)', color: 'hsl(0, 0%, 92%)' }}
+                  className="h-12 rounded-2xl bg-card border-border text-base"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password-signup" className="font-medium" style={{ color: 'hsl(220, 8%, 70%)' }}>
+                <Label htmlFor="password-signup" className="text-foreground font-medium">
                   Password
                 </Label>
                 <div className="relative">
@@ -273,14 +260,12 @@ const Auth = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="h-12 rounded-2xl text-base pr-12 border-0 placeholder:text-[hsl(220,8%,40%)]"
-                    style={{ background: 'hsl(220, 12%, 14%)', color: 'hsl(0, 0%, 92%)' }}
+                    className="h-12 rounded-2xl bg-card border-border text-base pr-12"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors"
-                    style={{ color: 'hsl(210, 60%, 88%)' }}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-primary hover:text-primary-hover transition-colors"
                   >
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
@@ -290,7 +275,7 @@ const Auth = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirm-password-signup" className="font-medium" style={{ color: 'hsl(220, 8%, 70%)' }}>
+                <Label htmlFor="confirm-password-signup" className="text-foreground font-medium">
                   Conferma Password
                 </Label>
                 <div className="relative">
@@ -301,14 +286,12 @@ const Auth = () => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    className="h-12 rounded-2xl text-base pr-12 border-0 placeholder:text-[hsl(220,8%,40%)]"
-                    style={{ background: 'hsl(220, 12%, 14%)', color: 'hsl(0, 0%, 92%)' }}
+                    className="h-12 rounded-2xl bg-card border-border text-base pr-12"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors"
-                    style={{ color: 'hsl(210, 60%, 88%)' }}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-primary hover:text-primary-hover transition-colors"
                   >
                     {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
@@ -335,19 +318,17 @@ const Auth = () => {
                   id="terms"
                   checked={acceptedTerms}
                   onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
-                  className="mt-0.5 border-[hsl(220,8%,40%)] data-[state=checked]:bg-[hsl(210,60%,88%)] data-[state=checked]:border-[hsl(210,60%,88%)] data-[state=checked]:text-[hsl(220,15%,6%)]"
+                  className="mt-0.5"
                 />
                 <label
                   htmlFor="terms"
-                  className="text-sm leading-tight cursor-pointer"
-                  style={{ color: 'hsl(220, 8%, 55%)' }}
+                  className="text-sm text-muted-foreground leading-tight cursor-pointer"
                 >
                   Accetto i{" "}
                   <a
                     href="/terms"
                     target="_blank"
-                    className="hover:underline font-medium"
-                    style={{ color: 'hsl(210, 60%, 88%)' }}
+                    className="text-primary hover:underline font-medium"
                     onClick={(e) => e.stopPropagation()}
                   >
                     Termini e Condizioni
@@ -357,9 +338,8 @@ const Auth = () => {
 
               <Button 
                 type="submit" 
-                className="w-full h-14 rounded-3xl text-base font-semibold shadow-lg hover:shadow-xl transition-all border-0" 
+                className="w-full h-14 rounded-3xl text-base font-semibold shadow-lg hover:shadow-xl transition-all" 
                 disabled={loading || !canRegister}
-                style={{ background: 'hsl(210, 60%, 88%)', color: 'hsl(220, 15%, 6%)' }}
               >
                 {loading ? "Registrazione in corso..." : "Registrati"}
               </Button>
