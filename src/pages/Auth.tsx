@@ -120,14 +120,18 @@ const Auth = () => {
   const [activeTab, setActiveTab] = useState<"signin" | "signup">("signin");
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center p-4 overflow-hidden">
-      {/* Background image */}
+    <div className="relative flex min-h-screen overflow-hidden">
+      {/* Background image - left side */}
       <img
         src={authBg}
         alt=""
         className="absolute inset-0 w-full h-full object-cover opacity-40"
         style={{ objectPosition: "calc(40% - 200px) center" }}
       />
+      {/* Form panel - right side with dark background */}
+      <div className="relative ml-auto flex min-h-screen w-full max-w-xl items-center justify-center p-8"
+        style={{ background: "hsl(220 15% 6% / 0.92)" }}
+      >
       <div className="w-full max-w-md space-y-8">
         {/* Icon and Title */}
         <div className="text-center space-y-4">
@@ -354,6 +358,7 @@ const Auth = () => {
             </form>
           )}
         </div>
+      </div>
       </div>
     </div>
   );
