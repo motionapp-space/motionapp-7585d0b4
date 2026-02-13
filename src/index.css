@@ -98,10 +98,10 @@ All colors MUST be HSL.
     --muted: 220 12% 96%;
     --muted-foreground: 220 8% 48%;
 
-    /* === ACCENT (LIGHT AZURE #defaff) === */
-    --accent: 189 100% 94%;
-    --accent-foreground: 189 60% 28%;
-    --accent-hover: 189 70% 88%;
+    /* === ACCENT (LIGHT AZURE #e6fbfc) === */
+    --accent: 183 82% 95%;
+    --accent-foreground: 183 55% 28%;
+    --accent-hover: 183 55% 89%;
 
     /* === DESTRUCTIVE === */
     --destructive: 0 65% 48%;
@@ -198,9 +198,9 @@ All colors MUST be HSL.
     --muted-foreground: 220 8% 70%;
 
     /* Accent (azure tint for dark) */
-    --accent: 189 35% 18%;
-    --accent-foreground: 189 50% 82%;
-    --accent-hover: 189 30% 23%;
+    --accent: 183 30% 18%;
+    --accent-foreground: 183 45% 82%;
+    --accent-hover: 183 25% 23%;
 
     /* Destructive */
     --destructive: 0 65% 55%;
