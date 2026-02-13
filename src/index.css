@@ -131,8 +131,8 @@ All colors MUST be HSL.
     --sidebar-background: 220 15% 6%;
     --sidebar-foreground: 0 0% 94%;
     --sidebar-muted: 220 10% 65%;
-    --sidebar-hover: 220 12% 12%;
-    --sidebar-active: 220 12% 16%;
+    --sidebar-hover: 264 30% 14%;
+    --sidebar-active: 264 50% 18%;
     --sidebar-border: 220 12% 12%;
     --sidebar-accent: 220 10% 22%;
     --sidebar-accent-foreground: 0 0% 92%;
@@ -215,8 +215,8 @@ All colors MUST be HSL.
     --sidebar-background: 220 15% 6%;
     --sidebar-foreground: 0 0% 92%;
     --sidebar-muted: 220 8% 70%;
-    --sidebar-hover: 220 12% 14%;
-    --sidebar-active: 220 10% 22%;
+    --sidebar-hover: 264 30% 14%;
+    --sidebar-active: 264 50% 18%;
     --sidebar-border: 220 10% 22%;
     --sidebar-accent: 220 10% 22%;
     --sidebar-accent-foreground: 0 0% 92%;
