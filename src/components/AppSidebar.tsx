@@ -90,7 +90,7 @@ export function AppSidebar({ collapsed = false, onNavClick }: AppSidebarProps) {
                 {active && collapsed && (
                   <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-6 bg-primary" />
                 )}
-                <Icon className={cn("h-5 w-5 shrink-0", active && "text-primary")} />
+                <Icon className="h-5 w-5 shrink-0" />
                 {!collapsed && (
                   <span className="text-base leading-6">{item.label}</span>
                 )}

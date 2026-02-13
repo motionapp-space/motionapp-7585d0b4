@@ -86,9 +86,9 @@ All colors MUST be HSL.
     --popover-foreground: 220 15% 6%;
 
     /* === PRIMARY (INK-BASED, NOT BLUE) === */
-    --primary: 264 73% 52%;
+    --primary: 220 15% 10%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 264 73% 45%;
+    --primary-hover: 220 15% 6%;
 
     /* === SECONDARY === */
     --secondary: 0 0% 100%;
@@ -123,7 +123,7 @@ All colors MUST be HSL.
     /* === BORDERS & INPUTS === */
     --border: 220 14% 90%;
     --input: 220 8% 92%;
-    --ring: 264 73% 52%;
+    --ring: 220 15% 10%;
 
     --radius: 1rem;
 
@@ -131,12 +131,12 @@ All colors MUST be HSL.
     --sidebar-background: 220 15% 6%;
     --sidebar-foreground: 0 0% 94%;
     --sidebar-muted: 220 10% 65%;
-    --sidebar-hover: 264 30% 14%;
-    --sidebar-active: 264 50% 18%;
+    --sidebar-hover: 220 12% 12%;
+    --sidebar-active: 220 12% 16%;
     --sidebar-border: 220 12% 12%;
     --sidebar-accent: 220 10% 22%;
     --sidebar-accent-foreground: 0 0% 92%;
-    --sidebar-ring: 264 73% 52%;
+    --sidebar-ring: 220 15% 10%;
 
     /* === CLIENT COLORS (CALENDAR EVENTS) === */
     --client-1: 226 80% 52%;
@@ -185,9 +185,9 @@ All colors MUST be HSL.
     --popover-foreground: 0 0% 92%;
 
     /* Primary — Ink-based, lighter for dark mode visibility */
-    --primary: 264 65% 62%;
+    --primary: 220 15% 20%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 264 65% 55%;
+    --primary-hover: 220 15% 16%;
 
     /* Secondary */
     --secondary: 220 10% 22%;
@@ -209,18 +209,18 @@ All colors MUST be HSL.
     /* Borders & inputs */
     --border: 220 10% 22%;
     --input: 220 10% 22%;
-    --ring: 264 65% 62%;
+    --ring: 220 15% 20%;
 
     /* Sidebar */
     --sidebar-background: 220 15% 6%;
     --sidebar-foreground: 0 0% 92%;
     --sidebar-muted: 220 8% 70%;
-    --sidebar-hover: 264 30% 14%;
-    --sidebar-active: 264 50% 18%;
+    --sidebar-hover: 220 12% 14%;
+    --sidebar-active: 220 10% 22%;
     --sidebar-border: 220 10% 22%;
     --sidebar-accent: 220 10% 22%;
     --sidebar-accent-foreground: 0 0% 92%;
-    --sidebar-ring: 264 65% 62%;
+    --sidebar-ring: 220 15% 20%;
 
     /* Client colors (brighter for dark mode) */
     --client-1: 226 75% 60%;
