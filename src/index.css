@@ -98,10 +98,10 @@ All colors MUST be HSL.
     --muted: 220 12% 96%;
     --muted-foreground: 220 8% 48%;
 
-    /* === ACCENT (SOFT LAVENDER #c7aadb) === */
-    --accent: 278 35% 76%;
-    --accent-foreground: 278 30% 25%;
-    --accent-hover: 278 30% 70%;
+    /* === ACCENT (SOFT LAVENDER #e7d5f4) === */
+    --accent: 275 55% 90%;
+    --accent-foreground: 275 35% 30%;
+    --accent-hover: 275 45% 85%;
 
     /* === DESTRUCTIVE === */
     --destructive: 0 65% 48%;
