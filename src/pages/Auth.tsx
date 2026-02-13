@@ -125,7 +125,7 @@ const Auth = () => {
       <img
         src={authBg}
         alt=""
-        className="absolute inset-0 w-full h-full object-cover scale-[4] origin-center opacity-40"
+        className="absolute inset-0 w-full h-full object-cover opacity-40"
       />
       <div className="w-full max-w-md space-y-8">
         {/* Icon and Title */}
