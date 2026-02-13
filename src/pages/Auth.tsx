@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import authBg from "@/assets/auth-bg.jpg";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -119,39 +120,13 @@ const Auth = () => {
   const [activeTab, setActiveTab] = useState<"signin" | "signup">("signin");
 
   return (
-    <div
-      className="relative flex min-h-screen items-center justify-center p-4 overflow-hidden"
-      style={{
-        background: "radial-gradient(circle at bottom right, hsl(220 14% 98%), hsl(220 15% 6%))"
-      }}
-    >
-      {/* Abstract curved waves from top-left */}
-      <svg
-        className="absolute top-0 left-0 w-full h-full pointer-events-none"
-        viewBox="0 0 1440 900"
-        preserveAspectRatio="xMinYMin slice"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M-100 0C-100 0 100 150 300 200S600 180 800 300S1100 500 1440 450"
-          stroke="hsl(220 14% 85%)"
-          strokeWidth="1.5"
-          opacity="0.18"
-        />
-        <path
-          d="M-80 -40C-80 -40 120 130 350 160S650 120 880 260S1150 420 1440 380"
-          stroke="hsl(220 14% 80%)"
-          strokeWidth="1"
-          opacity="0.14"
-        />
-        <path
-          d="M-120 60C-120 60 80 200 280 270S580 240 820 370S1080 560 1440 520"
-          stroke="hsl(220 14% 75%)"
-          strokeWidth="1.2"
-          opacity="0.16"
-        />
-      </svg>
+    <div className="relative flex min-h-screen items-center justify-center p-4 overflow-hidden">
+      {/* Background image */}
+      <img
+        src={authBg}
+        alt=""
+        className="absolute inset-0 w-full h-full object-cover opacity-40"
+      />
       <div className="w-full max-w-md space-y-8">
         {/* Icon and Title */}
         <div className="text-center space-y-4">
