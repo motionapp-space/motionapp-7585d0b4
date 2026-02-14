@@ -135,14 +135,14 @@ const Auth = () => {
         </div>
 
         {/* Custom Tab Toggle */}
-        <div className="bg-[hsl(220,15%,92%)] rounded-full p-1.5 flex gap-1">
+        <div className="bg-muted/60 rounded-full p-1.5 flex gap-1">
           <button
             type="button"
             onClick={() => setActiveTab("signin")}
-            className={`flex-1 py-3 px-6 rounded-full text-sm font-medium transition-all ${
+            className={`flex-1 py-3 px-6 rounded-full text-sm transition-all ${
               activeTab === "signin"
-                ? "bg-card text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-[hsl(var(--accent-soft-6))] text-foreground font-medium border border-[hsl(var(--selection-border))]"
+                : "text-muted-foreground hover:bg-[hsl(var(--accent-soft-2))] hover:text-foreground"
             }`}
           >
             Accedi
@@ -150,10 +150,10 @@ const Auth = () => {
           <button
             type="button"
             onClick={() => setActiveTab("signup")}
-            className={`flex-1 py-3 px-6 rounded-full text-sm font-medium transition-all ${
+            className={`flex-1 py-3 px-6 rounded-full text-sm transition-all ${
               activeTab === "signup"
-                ? "bg-card text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-[hsl(var(--accent-soft-6))] text-foreground font-medium border border-[hsl(var(--selection-border))]"
+                : "text-muted-foreground hover:bg-[hsl(var(--accent-soft-2))] hover:text-foreground"
             }`}
           >
             Registrati
