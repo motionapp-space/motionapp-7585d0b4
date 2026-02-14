@@ -1,51 +1,27 @@
 
 
-# Tabs: da 3 colori a 2 (muted + ice pill)
+## Allineare le tab di autenticazione allo stile delle tab della piattaforma
 
-## Problema attuale
-Il TabsTrigger attivo usa `bg-background` (bianco) + `border-b-2 border-accent` (underline), creando 3 layer visivi: muted (list) + bianco (pill attiva) + accent (underline). Troppo rumore.
+Attualmente le tab "Accedi / Registrati" nella pagina di login usano uno stile diverso rispetto alle tab usate nella piattaforma coach (es. nella Libreria). Il piano e' di uniformarle.
 
-## Soluzione
-Pill neutra con tint ice sull'attivo, senza underline ne sfondo bianco.
+### Differenze attuali
 
-## Modifiche in `src/components/ui/tabs.tsx`
+| Proprieta' | Tab Auth (attuale) | Tab Piattaforma (target) |
+|---|---|---|
+| Sfondo selezionato | `bg-card` (bianco) + `shadow-sm` | `bg-[hsl(var(--accent-soft-6))]` (tinta Ice) |
+| Bordo selezionato | Nessuno | `border border-[hsl(var(--selection-border))]` |
+| Hover | Nessuno | `bg-[hsl(var(--accent-soft-2))]` |
+| Sfondo container | `bg-[hsl(220,15%,92%)]` | `bg-muted/60` |
 
-### TabsList (riga 15)
-Da:
-```
-rounded-md bg-muted p-1
-```
-A:
-```
-rounded-full bg-muted/60 p-1
-```
+### Modifiche
 
-### TabsTrigger (riga 30)
-Sostituire l'intera stringa di classi con:
-```
-inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 py-2 text-sm text-muted-foreground ring-offset-background transition-all
-hover:bg-[hsl(var(--accent-soft-2))]
-data-[state=active]:bg-[hsl(var(--accent-soft-6))]
-data-[state=active]:text-foreground
-data-[state=active]:font-medium
-data-[state=active]:border
-data-[state=active]:border-[hsl(var(--selection-border))]
-data-[state=active]:shadow-none
-focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
-disabled:pointer-events-none disabled:opacity-50
-```
+**File: `src/pages/Auth.tsx`** (linee 138-161)
 
-### Rimosso
-- `data-[state=active]:bg-background` (pill bianca)
-- `data-[state=active]:border-b-2 border-[hsl(var(--accent))]` (underline accent)
-- `data-[state=active]:rounded-b-none`
-- `font-medium` dal default (ora solo sull'attivo)
+1. Cambiare lo sfondo del container da `bg-[hsl(220,15%,92%)]` a `bg-muted/60`
+2. Aggiornare lo stato attivo dei bottoni:
+   - Da: `bg-card text-foreground shadow-sm`
+   - A: `bg-[hsl(var(--accent-soft-6))] text-foreground font-medium border border-[hsl(var(--selection-border))]` (senza shadow)
+3. Aggiungere hover state: `hover:bg-[hsl(var(--accent-soft-2))]` sui bottoni inattivi
+4. Mantenere `rounded-full` e il padding esistenti
 
-### Risultato
-- **2 colori soli**: muted/60 (contenitore) + accent-soft-6 (pill attiva)
-- Hover ice leggero (`accent-soft-2`)
-- Border sottile `selection-border` sulla pill attiva
-- `font-medium` solo sullo stato attivo per gerarchia senza rumore
-
-Unico file modificato: `src/components/ui/tabs.tsx`
-
+Questo rendera' le tab di autenticazione visivamente identiche a quelle usate nel resto della piattaforma.
